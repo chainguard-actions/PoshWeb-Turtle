@@ -9,6 +9,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
 | v0.1.9 | [`v0.1.9`](https://github.com/chainguard-actions/PoshWeb-Turtle/tree/v0.1.9) | [`c62d602`](https://github.com/PoshWeb/Turtle/commit/c62d60220928bafbf5011cbdedb257527cb74448) |
+| v0.2.0 | [`v0.2.0`](https://github.com/chainguard-actions/PoshWeb-Turtle/tree/v0.2.0) | [`90e95d8`](https://github.com/PoshWeb/Turtle/commit/90e95d8b9324bbdabc62d59ddbaa3623980af819) |
 
 ## Privacy
 
