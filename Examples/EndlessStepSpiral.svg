@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+  <defs>
+    <pattern id="turtle-pattern" patternUnits="userSpaceOnUse" width="640.000000000007" height="640.000000000001" transform-origin="50% 50%" patternTransform="scale(1)">
+      <animateTransform type="scale" values="0.66;0.33;0.66" repeatCount="indefinite" dur="23s" additive="sum" attributeType="XML" attributeName="patternTransform" />
+      <animateTransform type="rotate" values="0;360" repeatCount="indefinite" dur="41s" additive="sum" attributeType="XML" attributeName="patternTransform" />
+      <animateTransform type="translate" values="0 0;42 42;0 0" repeatCount="indefinite" additive="sum" dur="117s" attributeType="XML" attributeName="patternTransform" />
+      <path id="turtle-path" d="m 320.000000000001 480  l 16 0  l 0 32  l -48 0  l -0 -64  l 80 -0  l 0 96  l -112 0  l -0 -128  l 144 -0  l 3.2E-13 160  l -176 1.76E-13  l 1.92E-13 -192  l 208 -2.08E-13  l -2.24E-13 224  l -240 2.4E-13  l 2.56E-13 -256  l 272 -2.72E-13  l 8.64E-13 288  l -304 1.52E-12  l 3.2E-13 -320  l 1.12E-13 16  l -32 -6.4E-14  l -1.44E-13 -48  l 64 -6.4E-14  l -0 80  l -96 -1.92E-13  l -3.36E-13 -112  l 128 -2.56E-13  l -0 144  l -160 -3.2E-13  l -7.04E-13 -176  l 192 -3.84E-13  l 0 208  l -224 1.344E-12  l -9.6E-13 -240  l 256 -2.304E-12  l 0 272  l -288 -2.88E-13  l -1.216E-12 -304  l 320 -6.4E-13  l -16 2.08E-13  l -1.28E-13 -32  l 48 1.92E-13  l 6.4E-14 64  l -80 4.8E-13  l 1.92E-13 -96  l 112 -3.36E-13  l 1.024E-12 128  l -144 -0  l -8E-13 -160  l 176 7.04E-13  l 1.92E-13 192  l -208 1.456E-12  l 4.48E-13 -224  l 240 -7.2E-13  l 2.304E-12 256  l -272 -0  l -1.44E-12 -288  l 304 9.12E-13  l 5.12E-12 320  l 1.6E-14 -16  l 32 -1.28E-13  l -2.4E-13 48  l -64 0  l -4.8E-13 -80  l 96 -1.056E-12  l 2.24E-13 112  l -128 1.024E-12  l 1.44E-13 -144  l 160 -3.04E-12  l 1.76E-12 176  l -192 1.92E-13  l -1.248E-12 -208  l 224 4.48E-13  l 7.2E-13 240  l -256 2.048E-12  l -3.808E-12 -272  l 288 -1.44E-12  l 3.04E-12 304  l -320 -4.16E-12" stroke="currentcolor" stroke-width="0.25%" fill="transparent" class="foreground-stroke" transform-origin="50% 50%">
+      </path>
+    </pattern>
+  </defs>
+  <rect width="10000%" height="10000%" x="-5000%" y="-5000%" fill="url(#turtle-pattern)" transform-origin="50% 50%" />
+</svg>

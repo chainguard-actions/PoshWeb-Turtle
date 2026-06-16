@@ -1,0 +1,3508 @@
+<!-- Generated with EZOut 2.0.6: Install-Module EZOut or https://github.com/StartAutomating/EZOut -->
+<Types>
+  <Type>
+    <Name>Turtle</Name>
+    <Members>
+      <MemberSet>
+        <Name>PSStandardMembers</Name>
+        <Members>
+          <PropertySet>
+            <Name>DefaultDisplayPropertySet</Name>
+            <ReferencedProperties>
+              <Name>Heading</Name>
+              <Name>Position</Name>
+            </ReferencedProperties>
+          </PropertySet>
+        </Members>
+      </MemberSet>
+      <AliasProperty>
+        <Name>ArcL</Name>
+        <ReferencedMemberName>ArcLeft</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>ArcR</Name>
+        <ReferencedMemberName>ArcRight</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>Back</Name>
+        <ReferencedMemberName>Backward</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>bk</Name>
+        <ReferencedMemberName>Backward</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>down</Name>
+        <ReferencedMemberName>PenDown</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>fd</Name>
+        <ReferencedMemberName>Forward</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>HLineBy</Name>
+        <ReferencedMemberName>HorizontalLine</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>l</Name>
+        <ReferencedMemberName>Left</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>LineTo</Name>
+        <ReferencedMemberName>GoTo</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>lt</Name>
+        <ReferencedMemberName>Left</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>MoveTo</Name>
+        <ReferencedMemberName>Teleport</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>pd</Name>
+        <ReferencedMemberName>PenDown</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>pu</Name>
+        <ReferencedMemberName>PenUp</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>r</Name>
+        <ReferencedMemberName>Right</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>rt</Name>
+        <ReferencedMemberName>Right</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>SetPos</Name>
+        <ReferencedMemberName>GoTo</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>SetPosition</Name>
+        <ReferencedMemberName>GoTo</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>up</Name>
+        <ReferencedMemberName>PenUp</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>VLineBy</Name>
+        <ReferencedMemberName>VerticalLine</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>xPos</Name>
+        <ReferencedMemberName>xcor</ReferencedMemberName>
+      </AliasProperty>
+      <AliasProperty>
+        <Name>yPos</Name>
+        <ReferencedMemberName>ycor</ReferencedMemberName>
+      </AliasProperty>
+      <ScriptMethod>
+        <Name>ArcLeft</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Arcs the turtle to the left
+.DESCRIPTION
+    Arcs the turtle to the left (counter-clockwise) a number of degrees.
+
+    For each degree, the turtle will move forward and rotate.
+.NOTES
+    The amount moved forward will be the portion of the circumference.
+#&gt;
+param(
+# The radius of a the circle, were it to complete the arc.
+[double]
+$Radius = 10,
+
+# The angle of the arc
+[double]
+$Angle = 60
+)
+
+# Rather than duplicate logic, we will simply reverse the angle
+$angle *= -1
+# and arc to the "right".
+return $this.ArcRight($Radius, $Angle)
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>ArcRight</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Arcs the turtle to the right
+.DESCRIPTION
+    Arcs the turtle to the right (clockwise) a number of degrees.
+
+    For each degree, the turtle will move forward and rotate.
+.NOTES
+    The amount moved forward will be the portion of the circumference.
+#&gt;
+param(
+# The radius of a the circle, were it to complete the arc.
+[double]
+$Radius = 10,
+
+# The angle of the arc
+[double]
+$Angle = 60
+)
+
+# Determine the absolute angle, for this operation
+$absAngle = [Math]::Abs($angle)
+
+if ($absAngle -eq 0) { return $this }
+
+# Determine the circumference of a circle of this radius
+$Circumference = ((2 * $Radius) * [Math]::PI)
+
+# Clamp the angle, as arcs beyond 360 just continue to circle
+$ClampedAngle = 
+    if ($absAngle -gt 360) { 360 }
+    elseif ($absAngle -lt -360) { -360}
+    else { $absAngle }
+# The circumference step is the circumference divided by our clamped angle
+$CircumferenceStep = $Circumference / [Math]::Floor($ClampedAngle)
+# The iteration is as close to one or negative one as possible
+$iteration  = $angle / [Math]::Floor($absAngle)
+# Start off at iteration 1
+$angleDelta = $iteration
+# while we have not reached the angle
+while ([Math]::Abs($angleDelta) -le $absAngle) {
+    # Rotate and move forward
+    $null = $this.Rotate($iteration).Forward($CircumferenceStep)
+    $angleDelta+=$iteration
+}
+
+# Return this so we can keep the chain.
+return $this
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Backward</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Moves backwards
+.DESCRIPTION
+    Moves the turtle backwards by a specified distance.
+.EXAMPLE
+    Move-Turtle Forward 10 | 
+        Move-Turtle Backward 5 | 
+        Move-Turtle Rotate 90 | 
+        Move-Turtle Forward 20 | 
+        Save-Turtle ./DrawT.svg
+#&gt;
+param(
+# The distance to move backwards
+[double]
+$Distance = 10
+)
+
+$this.Forward($Distance * -1)
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>BinaryTree</Name>
+        <Script>
+                        param(
+    [double]$Size = 20,
+    [int]$Order = 4,
+    [double]$Angle = 45
+)
+return $this.Rotate(-90).LSystem('0',  [Ordered]@{
+    '1' = '11'
+    '0' = '1[0]0'    
+}, $Order, [Ordered]@{
+    '[01]'    = { $this.Forward($Size) }
+    '\['      = { $this.Rotate($Angle * -1).Push() }
+    '\]'      = { $this.Pop().Rotate($Angle) }
+})
+
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>BoardFractal</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a Board
+.DESCRIPTION
+    Draws a Board, using an L-System
+.LINK
+    https://paulbourke.net/fractals/lsys/
+.EXAMPLE
+    turtle BoardFractal 42 1
+.EXAMPLE
+    turtle BoardFractal 42 2
+.EXAMPLE
+    turtle BoardFractal 42 3
+.EXAMPLE
+    turtle BoardFractal 42 4
+#&gt;
+param(
+# The size of each segment
+[double]$Size = 200,
+# The order of magnitude (the number of expansions)
+[int]$Order = 4,
+# The default angle.
+[double]$Angle = 90
+)
+return $this.LSystem('F+F+F+F',  [Ordered]@{
+    F = 'FF+F+F+F+FF'
+}, $Order, [Ordered]@{
+    '\+'    = { $this.Rotate($Angle) }
+    'F'     = { $this.Forward($Size) }
+})
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>BoxFractal</Name>
+        <Script>
+                        &lt;#
+.EXAMPLE
+    $turtle.PatternAnimation = ''    
+    $turtle.Clear().BoxFractal().Pattern.Save("$pwd/BoxFractal.svg")
+    
+.EXAMPLE
+    $turtle.Clear()
+    $turtle.BoxFractal(10,4)
+    $turtle.PatternTransform = @{
+        'scale' = 0.9        
+    }
+    $turtle.PatternAnimation = "
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='scale' values='1;0.9;1' dur='19s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewY' values='0;-30;30;-30;0' dur='67s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewX' values='0;-30;30;-30;0' dur='83s' repeatCount='indefinite' additive='sum' /&gt;
+    "
+    $turtle.Pattern.Save("$pwd/BoxFractal2.svg")
+#&gt;
+param(
+    [double]$Size = 20,
+    [int]$Order = 4,
+    [double]$Angle = 90
+)
+return $this.LSystem('F-F-F-F',  [Ordered]@{
+    F = 'F-F+F+F-F'
+}, $Order, [Ordered]@{
+    '\+'    = { $this.Rotate($Angle) }
+    '-'     = { $this.Rotate($Angle * -1) }
+    'F'     = { $this.Forward($Size) }
+})
+
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Circle</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a circle.
+.DESCRIPTION
+    Draws a whole or partial circle using turtle graphics.
+
+    That is, it draws a circle by moving the turtle forward and rotating it.
+
+    To draw a semicircle, use an extent of 0.5.
+
+    To draw a quarter circle, use an extent of 0.25.
+
+    To draw a half hexagon, use an extent of 0.5 and step count of 6.
+.EXAMPLE
+    $turtle = New-Turtle
+    $turtle.Circle(10).Pattern.Save("$pwd/CirclePattern.svg")
+.EXAMPLE
+    Move-Turtle Circle 10 | 
+        Save-Turtle "$pwd/CirclePattern.svg" -Property Pattern
+.EXAMPLE
+    $turtle = New-Turtle |    
+        Move-Turtle Forward 10 |
+        Move-Turtle Rotate -90 |
+        Move-Turtle Circle 5 |        
+        Move-Turtle Circle 5 .5 |
+        Move-Turtle Rotate -90 | 
+        Move-Turtle Forward 10 | Save-Turtle .\DashDotDash.svg
+.EXAMPLE
+    $turtle = New-Turtle |    
+        Move-Turtle Forward 20 |
+        Move-Turtle Circle 5 .75 |
+        Move-Turtle Forward 20 |
+        Move-Turtle Circle 5 .75 |
+        Move-Turtle Forward 20 |
+        Move-Turtle Circle 5 .75 |
+        Move-Turtle Forward 20 |
+        Move-Turtle Circle 5 .75 |
+        Save-Turtle .\CommandSymbol.svg
+#&gt;
+param(
+[double]$Radius = 10,
+[double]$Extent = 1,
+[int]$StepCount = 180   
+)
+
+$circumference = 2 * [math]::PI * $Radius
+$circumferenceStep = $circumference / $StepCount
+
+if ($extent -eq 0) { return $this}
+
+$extentMultiplier = if ($extent -gt 0) { 1 } else { -1 }
+
+$currentExtent = 0
+$maxExtent = [math]::Abs($extent)
+
+$extentStep = 1/$StepCount
+
+$null = foreach ($n in 1..$StepCount) {
+
+    $this.Forward($circumferenceStep)
+    $currentExtent += $extentStep
+
+    if ($n -le $StepCount -and $currentExtent -le $maxExtent) {
+        $this.Rotate( (360 / $StepCount) * $extentMultiplier)
+    }
+
+    if ($currentExtent -gt $maxExtent) {
+        break
+    }
+}
+return $this
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Clear</Name>
+        <Script>
+                        $this.Heading = 0
+$this.Steps = @()
+$this | Add-Member -MemberType NoteProperty -Force -Name '.Position' -Value ([pscustomobject]@{ X = 0; Y = 0 })
+$this | Add-Member -MemberType NoteProperty -Force -Name '.Minimum' -Value ([pscustomobject]@{ X = 0; Y = 0 })
+$this | Add-Member -MemberType NoteProperty -Force -Name '.Maximum' -Value ([pscustomobject]@{ X = 0; Y = 0 })
+$this.ViewBox = 0
+return $this
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>CrystalFractal</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a Crystal Fractal
+.DESCRIPTION
+    Draws a Crystal Fractal, using an L-System
+.LINK
+    https://paulbourke.net/fractals/lsys/
+.EXAMPLE
+    turtle CrystalFractal 42 1
+.EXAMPLE
+    turtle CrystalFractal 42 2
+.EXAMPLE
+    turtle CrystalFractal 42 3
+.EXAMPLE
+    turtle CrystalFractal 42 4
+#&gt;
+param(
+# The size of each segment
+[double]$Size = 200,
+# The order of magnitude (the number of expansions)
+[int]$Order = 4,
+# The default angle.
+[double]$Angle = 90
+)
+return $this.LSystem('F+F+F+F',  [Ordered]@{
+    F = 'FF+F++F+F'
+}, $Order, [Ordered]@{
+    '\+'    = { $this.Rotate($Angle) }
+    'F'     = { $this.Forward($Size) }
+})
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Distance</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Determines the distance to a point
+.DESCRIPTION
+    Determines the distance from the turtle's current position to a point.
+#&gt;
+param(
+# The X-coordinate
+[double]$X = 0,
+# The Y-coordinate
+[double]$Y = 0
+)
+
+# Determine the delta from the turtle's current position to the specified point
+$deltaX = $X - $this.Position.X
+$deltaY = $Y - $this.Position.Y
+
+# Calculate the distance using the Pythagorean theorem
+return [Math]::Sqrt($deltaX*$deltaX + $deltaY*$deltaY)
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>FillColor</Name>
+        <Script>
+                        param($fill = 'transparent')
+$this.Fill = $fill
+return $this
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Flower</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a flower pattern.
+.DESCRIPTION
+    Draws a flower pattern in turtle graphics.
+
+    This pattern consists of a series of polygons and rotations to create a flower-like design.
+.EXAMPLE
+    $turtle = New-Turtle
+    $turtle.Flower(100, 10, 5, 36)
+    $turtle.Pattern.Save("$pwd/FlowerPattern.svg")
+.EXAMPLE
+    Move-Turtle Flower |
+        Save-Turtle ./FlowerSymbol.svg
+#&gt;
+param(
+    [double]$Size = 100,
+    [double]$Rotation = 10,
+    [double]$SideCount = 4,
+    [double]$StepCount = 36
+)
+
+$null = foreach ($n in 1..$StepCount) {    
+    $this.Polygon($Size, $SideCount)
+    $this.Rotate($Rotation)
+}
+
+return $this
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>FlowerPetal</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a flower made of petals
+.DESCRIPTION
+    Draws a flower made of a series of petals.  
+    
+    Each petal is a combination of two arcs and rotations.
+.EXAMPLE
+    turtle FlowerPetal 60
+#&gt;
+param(
+# The radius of the flower
+[double]
+$Radius = 10,
+
+# The rotation per step 
+[double]
+$Rotation = 30,
+
+# The angle of the petal.
+[double]
+$PetalAngle = 60,
+
+# The number of steps.
+[ValidateRange(1,1mb)]
+[int]
+$StepCount = 12
+)
+
+foreach ($n in 1..$stepCount) {
+    $this = $this.Petal($radius, $PetalAngle).Rotate($Rotation)    
+}
+
+return $this
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Forward</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Moves the turtle forward
+.DESCRIPTION
+    Moves the turtle forward along the current heading
+.EXAMPLE
+    turtle forward rotate 90 forward rotate 90 forward rotate 90 forward rotate 90
+#&gt;
+param(
+# The distance to move forward
+[double]
+$Distance = 10
+)
+
+$x = $Distance * ([math]::round([math]::cos($this.Heading * [Math]::PI / 180),15))
+$y = $Distance * ([math]::round([math]::sin($this.Heading * [Math]::PI / 180),15))
+return $this.Step($x, $y)
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>FractalPlant</Name>
+        <Script>
+                        param(
+    [double]$Size = 20,
+    [int]$Order = 4,
+    [double]$Angle = 25
+)
+return $this.Rotate(-90).LSystem('-X',  [Ordered]@{
+    'X' = 'F+[[X]-X]-F[-FX]+X'
+    'F' = 'FF'    
+}, $Order, [Ordered]@{
+    'F'    = { $this.Forward($Size) }
+    '\['      = { $this.Rotate($Angle * -1).Push() }
+    '\]'      = { $this.Pop().Rotate($Angle) }
+})
+
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>GosperCurve</Name>
+        <Script>
+                        &lt;#
+.EXAMPLE
+    $turtle.Clear().GosperCurve().Pattern.Save("$pwd/GosperCurve.svg")
+.EXAMPLE
+    $turtle.Clear()
+    $turtle.GosperCurve(20,1,60)
+    $turtle.PatternTransform = @{
+        'scale' = 0.5
+    }
+    
+    $turtle.PatternAnimation = "
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='scale' values='1;0.9;1' dur='19s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewY' values='30;-30;30' dur='67s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewX' values='30;-30;30' dur='83s' repeatCount='indefinite' additive='sum' /&gt;
+    "
+    $turtle.Pattern.Save("$pwd/GosperCurve2.svg")
+#&gt;
+param(
+    [double]$Size = 10,
+    [int]$Order = 4,
+    [double]$Angle = 60
+)        
+
+return $this.LSystem('A',  @{
+    A = 'A-B--B+A++AA+B-'
+    B = 'A-BB--B-A++A+B'
+}, $Order, ([Ordered]@{
+    '\+'    = { $this.Rotate($Angle) }
+    '[AB]'  = { $this.Forward($Size) }    
+    '-'     = { $this.Rotate($Angle * -1) }
+}))
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>GoTo</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Go to a specific position.
+.DESCRIPTION
+    Moves the turtle to a specific position.  
+    
+    If the pen is down, it will draw a line to that position.
+.EXAMPLE
+    Move-Turtle GoTo 10 10 | Move-Turtle Square 10 10
+#&gt;
+param(
+# The X coordinate to move to.
+[double]
+$X,
+
+# The Y coordinate to move to.
+[double]
+$Y
+)
+
+return $this.Step(
+    $x - $this.X,
+    $y - $this.Y
+)
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>HilbertCurve</Name>
+        <Script>
+                        param(
+    [double]$Size = 10,
+    [int]$Order = 5,
+    [double]$Angle = 90
+)        
+
+return $this.LSystem('A',  [Ordered]@{
+    A = '+BF-AFA-FB+'
+    B = '-AF+BFB+FA-'
+}, $Order, [Ordered]@{
+    'F'     = { $this.Forward($Size) }
+    '\+'    = { $this.Rotate($Angle) }
+    '\-'    = { $this.Rotate($Angle * -1) }
+})
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Home</Name>
+        <Script>
+                        param()
+
+return $this.Teleport(0,0)
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>HorizontalLine</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a horizontal line
+.DESCRIPTION
+    Draws a horizontal line.  
+    
+    The heading will not be changed.
+#&gt;
+param(
+[double]
+$Distance
+)
+
+
+$this.GoTo($this.Position.X + $Distance, $this.Position.Y)
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Jump</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Jumps the turtle forward by a specified distance
+.DESCRIPTION
+    Moves the turtle forward by the specified distance without drawing.
+
+    Turtles may not be known for their jumping abilities, but they may surprise you!
+.EXAMPLE
+    $turtle.
+        Clear().
+        Rotate(45).
+        Forward(10).
+        Jump(20).
+        Forward(10).        
+        Symbol.Save("$pwd/Jump.svg")
+#&gt;
+param(
+# The distance to jump forward
+[double]$Distance
+)
+
+$this.PenUp().Forward($Distance).PenDown()
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>KochCurve</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a Koch Curve
+.DESCRIPTION
+    Draws a Koch Curve, using an L-System.
+#&gt;
+param(
+    [double]$Size = 10,
+    [double]$Rotation = 90,
+    [int]$Order = 4
+)    
+return $this.LSystem('F',  @{
+    F = 'F+F-F-F+F'
+}, $Order, [Ordered]@{
+    '\+' = { $this.Rotate($Rotation) }
+    'F' =  { $this.Forward($Size) }    
+    '\-' = { $this.Rotate($Rotation * -1) }
+})
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>KochIsland</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Generates a Koch Island
+.DESCRIPTION
+    Generates a Koch Island using turtle graphics.   
+.EXAMPLE
+    $turtle.KochIsland().Pattern.Save("$pwd/KochIsland.svg")
+.EXAMPLE
+    $turtle.Clear()
+    $turtle.KochIsland(10,4)
+    $turtle.PatternTransform = @{
+        'scale' = 0.9        
+    }    
+    $turtle.PatternAnimation = "
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='scale' values='1;0.9;1' dur='19s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewY' values='0;-30;30;-30;0' dur='67s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewX' values='0;-30;30;-30;0' dur='83s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='rotate' values='0;360' dur='163s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='translate' values='0 0;200 200;0 0' dur='283s' repeatCount='indefinite' additive='sum' /&gt;
+    "
+    $turtle.Pattern.Save("$pwd/KochIsland2.svg")
+#&gt;
+param(
+    [double]$Size = 20,
+    [int]$Order = 3,
+    [double]$Angle = 90
+)
+
+return $this.LSystem('W',  [Ordered]@{
+    W = 'F+F+F+F'
+    F = 'F+F-F-FF+F+F-F'
+}, $Order, [Ordered]@{
+    '\+'    = { $this.Rotate($Angle) }
+    '-'     = { $this.Rotate($Angle * -1) }
+    '[FG]'  = { $this.Forward($Size) }
+})
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>KochSnowflake</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Generates a Koch Snowflake.
+.DESCRIPTION
+    Generates a Koch Snowflake using turtle graphics.
+.LINK
+    https://en.wikipedia.org/wiki/Koch_snowflake#Representation_as_Lindenmayer_system
+.EXAMPLE
+    $turtle.KochSnowflake().Pattern.Save("$pwd/KochSnowflake.svg")
+.EXAMPLE
+    $turtle.Clear()
+    $turtle.KochSnowflake(10,4)
+    $turtle.PatternTransform = @{
+        'scale' = 0.9        
+    }    
+    $turtle.PatternAnimation = "
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='scale' values='1;0.9;1' dur='19s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewY' values='0;-30;30;-30;0' dur='67s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewX' values='0;-30;30;-30;0' dur='83s' repeatCount='indefinite' additive='sum' /&gt;
+    "
+    $turtle.Pattern.Save("$pwd/KochSnowflake2.svg")
+#&gt;
+param(
+    [double]$Size = 10,    
+    [int]$Order = 4,
+    [double]$Rotation = 60
+)    
+return $this.LSystem('F--F--F ',  @{
+    F = 'F+F--F+F'
+}, $Order, [Ordered]@{
+    '\+' = { $this.Rotate($Rotation) }
+    'F' =  { $this.Forward($Size) }    
+    '-' = { $this.Rotate($Rotation * -1) }
+})
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Left</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Turns the turtle left
+.DESCRIPTION
+    Turns the turtle left (counter-clockwise) by the specified angle.
+#&gt;
+param(
+[double]$Angle = 90
+)
+
+$this.Rotate($Angle * -1)
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>LevyCurve</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a Levy Curve
+.DESCRIPTION
+    Draws a Levy Curve L-System
+.LINK
+    https://paulbourke.net/fractals/lsys/
+#&gt;
+param(
+# The size of each segment.
+[double]$Size = 10,
+# The number of expansions (the order of magnitude)
+[int]$Order = 4,
+# The angle
+[double]$Angle = 45
+)
+
+$this.LSystem('F', @{
+    F='-F++F-'
+}, $Order, [Ordered]@{
+    '\+' = { $this.Rotate($angle)}
+    '-' = { $this.Rotate($angle * -1)}
+    'F' = { $this.Forward($size)}
+})
+
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>LSystem</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a L-system pattern.
+.DESCRIPTION
+    Generates a pattern using a L-system.
+
+    The initial string (Axiom) is transformed according to the rules provided for a specified number of iterations.    
+.LINK
+    https://en.wikipedia.org/wiki/L-system
+.EXAMPLE        
+    # Box Fractal L-System
+    $Box = 'F-F-F-F'
+    $Fractal = 'F-F+F+F-F'
+    
+    $turtle.Clear().LSystem(
+            $Box, 
+            [Ordered]@{ F = $Fractal },
+            3, 
+            @{
+                F = { $this.Forward(10) }
+                J = { $this.Jump(10) }
+                '\+' = { $this.Rotate(90) }            
+                '-' = { $this.Rotate(-90) }
+            }
+    ).Pattern.Save("$pwd/BoxFractalLSystem.svg")
+.EXAMPLE
+    # Fractal L-System
+    $Box = 'FFFF-FFFF-FFFF-FFFF' 
+    $Fractal = 'F-F+F+F-F'
+        
+    $turtle.Clear().LSystem(
+            $Box, 
+            [Ordered]@{ F = $Fractal },
+            4, 
+            @{
+                F = { $this.Forward(10) }
+                J = { $this.Jump(10) }
+                '\+' = { $this.Rotate(90) }            
+                '-' = { $this.Rotate(-90) }
+            }
+    ).Symbol.Save("$pwd/FractalLSystem.svg")
+.EXAMPLE
+    # Arrowhead Fractal L-System
+    $Box = 'FF-FF-FF' 
+    $Fractal = 'F-F+F+F-F'
+    
+    
+    $turtle.Clear().LSystem(
+            $Box, 
+            [Ordered]@{ F = $Fractal },
+            4, 
+            @{
+                F = { $this.Forward(10) }
+                J = { $this.Jump(10) }
+                '\+' = { $this.Rotate(90) }            
+                '-' = { $this.Rotate(-90) }
+            }
+    ).Pattern.Save("$pwd/ArrowheadFractalLSystem.svg")
+.EXAMPLE
+    # Tetroid LSystem
+    $turtle.Clear().LSystem(
+            'F', 
+            [Ordered]@{ F = 'F+F+F+F' + 
+                '+JJJJ+' + 
+                'F+F+F+F' + 
+                '++JJJJ' +
+                'F+F+F+F' +
+                '++JJJJ' +
+                'F+F+F+F' +
+                '++JJJJ' + 
+                '-JJJJ'
+            },                
+            3, 
+            @{
+                F = { $this.Forward(10) }
+                J = { $this.Jump(10) }
+                '\+' = { $this.Rotate(90) }            
+                '-' = { $this.Rotate(-90) }
+            }
+    ).Pattern.Save("$pwd/TetroidLSystem.svg")
+
+.EXAMPLE
+    $turtle.Clear().LSystem(
+        'F', 
+        [Ordered]@{ F = '
+F+F+F+F +JJJJ+ F+F+F+F ++ JJJJ' },
+        3, 
+        @{
+            F = { $this.Forward(10) }
+            J = { $this.Jump(10) }
+            '\+' = { $this.Rotate(90) }            
+            '-' = { $this.Rotate(-90) }
+        }
+    ).Pattern.Save("$pwd/LSystemCool1.svg")
+.EXAMPLE
+    Move-Turtle LSystem F-F-F-F ([Ordered]@{F='F-F+F+F-F'}) 3 (
+        [Ordered]@{
+            F = { $this.Forward(10) }
+            J = { $this.Jump(10) }
+            '\+' = { $this.Rotate(90) }            
+            '-' = { $this.Rotate(-90) }
+        }
+    )
+    
+#&gt;
+param(
+# The axiom, or starting string.
+[Alias('Start', 'StartString', 'Initiator')]
+[string]
+$Axiom,
+
+# The rules for expanding each iteration of the axiom.
+[Alias('Rules', 'ProductionRules')]
+[Collections.IDictionary]
+$Rule = [Ordered]@{},
+
+# The order of magnitude (or number of iterations)
+[Alias('Iterations', 'IterationCount', 'N', 'Steps', 'N','StepCount')]
+[int]
+$Order = 2,
+
+# The ways each variable will be expanded.
+[Collections.IDictionary]
+$Variable = @{}
+
+)
+
+# First, let us expand our axiom
+$currentState = "$Axiom"
+# (at least, as long as we're supposed to)
+if ($Order -ge 1) {
+    $combinedPattern = "(?&gt;$($Rule.Keys -join '|'))"
+    foreach ($iteration in 1..$Order) {
+        # To expand each iteration, we replace any matching characters
+        $currentState = $currentState -replace $combinedPattern, {
+            $match = $_
+            $matchingRule = $rule["$match"]
+            # a matching rule could be dynamically specified with a script block
+            if ($matchingRule -is [ScriptBlock]) {
+                return "$(. $matchingRule $match)"
+            } else {
+                # but is often statically expanded with a string.
+                return $matchingRule
+            }
+        }    
+    }        
+}
+
+# Now we know our final state
+$finalState = $currentState
+
+# and can add the appropriate data attributes.
+$this.PathAttribute = [Ordered]@{
+    "data-l-order" = $Order
+    "data-l-axiom" = $Axiom
+    "data-l-rules" = ConvertTo-Json $Rule 
+    "data-l-expanded" = $finalState
+}
+
+# Next, prepare our replacements.
+# The provided script block will almost always be scoped differently
+# so we need to recreate it.
+$localReplacement = [Ordered]@{}
+foreach ($key in $variable.Keys) {
+    $localReplacement[$key] =
+        if ($variable[$key] -is [ScriptBlock]) {
+            [ScriptBlock]::Create($variable[$key])
+        } else {
+            $variable[$key]
+        }
+}
+
+# Now we need to find all potential matches
+$MatchesAny = "(?&gt;$($variable.Keys -join '|'))"
+$allMatches = @([Regex]::Matches($finalState, $MatchesAny, 'IgnoreCase,IgnorePatternWhitespace'))
+# we want to minimize rematching, so create a temporary cache.
+$matchCache = @{}
+:nextMatch foreach ($match in $allMatches) {
+    $m = "$match"
+    # If we have not mapped the match to a script,
+    if (-not $matchCache[$m]) {
+        # find the matching replacement.
+        foreach ($key in $Variable.Keys) {
+            if (-not ($match -match $key)) { continue }     
+            $matchCache[$m] = $localReplacement[$key]
+            break
+        }    
+    }
+    
+    # If we have a script to run
+    if ($matchCache[$m] -is [ScriptBlock]) {
+        # run it
+        $null =  . $matchCache[$m] $match
+        # and continue to the next match.
+        continue nextMatch
+    }
+}
+
+# return this so we can pipe and chain this method.
+return $this
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>MooreCurve</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Generates a Moore curve.
+.DESCRIPTION
+    Generates a Moore curve using turtle graphics.
+.LINK
+    https://en.wikipedia.org/wiki/Moore_curve
+.EXAMPLE
+    $turtle = New-Turtle
+    $turtle.MooreCurve().Pattern.Save("$pwd/MooreCurvePattern.svg")
+.EXAMPLE
+    Move-Turtle MooreCurve 15 5 |
+        Set-Turtle Stroke '#4488ff' |
+        Save-Turtle "./MooreCurve.svg"
+#&gt;
+param(
+    [double]$Size = 10,
+    [int]$Order = 4,
+    [double]$Angle = 90
+)        
+
+
+return $this.LSystem(
+    'LFL+F+LFL', 
+    [Ordered]@{ 
+        L = '-RF+LFL+FR-'
+        R = '+LF-RFR-FL+'
+    },
+    4, 
+    @{
+        F = { $this.Forward(10) }            
+        '\+' = { $this.Rotate(90) }            
+        '-' = { $this.Rotate(-90) }
+    }
+)
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Morph</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Morphs a Turtle
+.DESCRIPTION
+    Morphs a Turtle by animating its path.
+
+    Any two paths with the same number of points can be morphed into each other.
+.EXAMPLE
+    $sierpinskiTriangle = turtle SierpinskiTriangle 42 4
+    $SierpinskiTriangleFlipped = turtle rotate 180 SierpinskiTriangle 42 4
+    turtle SierpinskiTriangle 42 4 morph (
+        $SierpinskiTriangle, 
+        $SierpinskiTriangleFlipped, 
+        $sierpinskiTriangle
+    ) save ./SierpinskiTriangleFlip.svg
+.EXAMPLE
+    $sideCount = (3..24 | Get-Random )
+    $stepCount = 36
+    
+    $flower = turtle rotate ((Get-Random -Max 180) * -1) flower 42 10 $sideCount $stepCount
+    $flower2 = turtle rotate ((Get-Random -Max 180)) flower 42 50 $sideCount $stepCount
+    $flower3 = turtle rotate ((Get-Random -Max 90)) flower 42 20 $sideCount $stepCount
+    turtle flower 42 10 $sideCount $stepCount duration ($sideCount * 3) morph ($flower, $flower2,$flower) |
+        save-turtle ./flowerMorph.svg Pattern
+.EXAMPLE
+    $flowerAngle = (40..60 | Get-Random )
+    $stepCount = 36
+    $radius = 23..42 | Get-Random
+    
+    $flowerPetals = turtle rotate ((Get-Random -Max 180) * -1) flowerPetal $radius 10 $flowerAngle $stepCount    
+    $flowerPetals3 = turtle rotate ((Get-Random -Max 180)) flowerPetal $radius 40 $flowerAngle $stepCount
+    turtle flowerPetal $radius 10 $flowerAngle $stepCount duration $radius morph (
+        $flowerPetals, 
+        $flowerPetals3,
+        $flowerPetals
+    ) | Save-Turtle ./flowerPetalMorph.svg Pattern
+#&gt;
+param(
+[Parameter(ValueFromRemainingArguments)]
+$Arguments
+)
+
+$durationArgument = $null
+
+$newPaths = @(foreach ($arg in $Arguments) {
+    if ($arg -is [string]) {
+        if ($arg -match '^\s{0,}m') {
+            $arg
+        }
+    } elseif ($arg.PathData) {
+        $arg.PathData
+    } elseif ($arg.D) {
+        $arg.D
+    } elseif ($arg -is [TimeSpan]) {
+        $durationArgument = $arg
+    }
+    elseif ($arg -is [double] -or $arg -is [int]) {
+        $durationArgument = [TimeSpan]::FromSeconds($arg)
+    }
+})
+
+if (-not $newPaths) {
+    return $this
+    &lt;#$pathSegments = @($this.PathData -split '(?=\p{L})')
+    $newPaths = @(for ($segmentNumber = 0; $segmentNumber -lt $pathSegments.Count; $segmentNumber++) {
+        $pathSegments[0..$segmentNumber] -join ' '
+    }) -join ';'#&gt;
+}
+
+if ($this.PathAnimation) {
+    $updatedAnimations = 
+        @(foreach ($animationXML in $this.PathAnimation -split '(?&lt;=/&gt;)') {
+            $animationXML = $animationXML -as [xml]
+            if (-not $animationXML) { continue }
+            if ($animationXML.attributeName -eq 'd') {
+                $animationXML.values = "$($newPaths -join ';')"
+            }
+            $animationXML.OuterXml
+        })
+    $this.PathAnimation = $updatedAnimations
+} else {
+    $this.PathAnimation += [Ordered]@{
+        attributeName = 'd'   ; values = "$($newPaths -join ';')" ; repeatCount = 'indefinite'; dur = $(
+            if ($durationArgument) {
+                "$($durationArgument.TotalSeconds)s"
+            } elseif ($this.Duration) {
+                "$($this.Duration.TotalSeconds)s"
+            } else {
+                "4.2s"
+            }
+            
+        )
+    }
+}
+
+return $this
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>PeanoCurve</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Generates a Peano curve.
+.DESCRIPTION
+    Generates a Peano curve using turtle graphics.
+.LINK
+    https://en.wikipedia.org/wiki/Peano_curve
+.EXAMPLE
+    $turtle = New-Turtle
+    $turtle.PeanoCurve().Pattern.Save("$pwd/PeanoCurve.svg")
+.EXAMPLE
+    Move-Turtle PeanoCurve 15 5 |
+        Set-Turtle Stroke '#4488ff' |
+        Save-Turtle "./PeanoCurve.svg"
+#&gt;
+param(
+    [double]$Size = 10,
+    [int]$Order = 5,
+    [double]$Angle = 90
+)        
+
+return $this.LSystem('X',  @{
+    X = 'XFYFX+F+YFXFY-F-XFYFX'
+    Y = 'YFXFY-F-XFYFX+F+YFXFY'
+}, $Order, ([Ordered]@{
+    '\+'    = { $this.Rotate($Angle) }
+    '[F]'   = { $this.Forward($Size) }    
+    '\-'    = { $this.Rotate($Angle * -1) }
+}))
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>PenColor</Name>
+        <Script>
+                        param($stroke = 'currentColor')
+$this.Stroke = $stroke
+return $this
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>PenDown</Name>
+        <Script>
+                        $this.IsPenDown = $true
+return $this
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Pentaplexity</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a Pentaplexity
+.DESCRIPTION
+    Draws a Pentaplexity Fractal, using an L-System
+.LINK
+    https://paulbourke.net/fractals/lsys/
+.EXAMPLE
+    turtle Pentaplexity 42 1
+.EXAMPLE
+    turtle Pentaplexity 42 2
+.EXAMPLE
+    turtle Pentaplexity 42 3
+.EXAMPLE
+    turtle Pentaplexity 42 4
+#&gt;
+param(
+# The size of each segment
+[double]$Size = 200,
+# The order of magnitude (the number of expansions)
+[int]$Order = 4,
+# The default angle.
+[double]$Angle = 36
+)
+return $this.LSystem('F++F++F++F++F',  [Ordered]@{
+    F = 'F++F++F+++++F-F++F'
+}, $Order, [Ordered]@{
+    '\+'    = { $this.Rotate($Angle) }
+    '-'     = { $this.Rotate($Angle*-1)}
+    'F'     = { $this.Forward($Size) }
+})
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>PenUp</Name>
+        <Script>
+                        $this.IsPenDown = $false
+return $this
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Petal</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a petal
+.DESCRIPTION
+    Draws a petal.  
+    
+    This is a combination of two arcs and rotations.
+.EXAMPLE
+    turtle @('petal',100,60, 'rotate', 60 * 6)
+#&gt;
+param(
+[double]
+$Radius = 10,
+
+[double]
+$Angle = 60
+)
+
+$OppositeAngle = 180 - $Angle
+
+
+$null = @(
+    $this.ArcRight($Radius, $angle)
+    $this.Rotate($OppositeAngle)
+    $this.ArcRight($Radius, $angle)
+    $this.Rotate($OppositeAngle)
+)
+
+return $this
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Polygon</Name>
+        <Script>
+                        param(
+    $Size = 100, 
+    $SideCount = 6
+)
+
+$null = foreach ($n in 1..$SideCount) {    
+    $this.Forward($Size)
+    $this.Rotate(360 / $SideCount)    
+}
+return $this
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Pop</Name>
+        <Script>
+                        if ($this.'.Stack' -isnot [Collections.Stack]) {
+    return
+}
+
+if ($this.'.Stack'.Count -eq 0) {
+    return
+}
+
+$popped = $this.'.Stack'.Pop()
+$this.PenUp().Goto($popped.Position.X, $popped.Position.Y).PenDown()
+$this.Heading = $popped.Heading
+return $this
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Push</Name>
+        <Script>
+                        if (-not $this.'.Stack') {
+    $this | Add-Member NoteProperty '.Stack' ([Collections.Stack]::new()) -Force
+}
+
+$this.'.Stack'.Push(@{
+    Position = [Ordered]@{X=$this.Position.X;Y=$this.Position.Y}
+    Heading = $this.Heading
+})
+return $this
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Right</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Turns the turtle right 
+.DESCRIPTION
+    Turns the turtle right (clockwise) by the specified angle.
+#&gt;
+param(
+[double]$Angle = 90
+)
+
+$this.Rotate($Angle)
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>RingFractal</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a Ring Fractal
+.DESCRIPTION
+    Draws a Ring Fractal, using an L-System
+.LINK
+    https://paulbourke.net/fractals/lsys/
+.EXAMPLE
+    turtle RingFractal 42 1
+.EXAMPLE
+    turtle RingFractal 42 2
+.EXAMPLE
+    turtle RingFractal 42 3
+.EXAMPLE
+    turtle RingFractal 42 4
+#&gt;
+param(
+# The size of each segment
+[double]$Size = 200,
+# The order of magnitude (the number of expansions)
+[int]$Order = 4,
+# The default angle.
+[double]$Angle = 90
+)
+return $this.LSystem('F+F+F+F',  [Ordered]@{
+    F = 'FF+F+F+F+F+F-F'
+}, $Order, [Ordered]@{
+    '\+'    = { $this.Rotate($Angle) }
+    '-'     = { $this.Rotate($Angle * -1)}
+    'F'     = { $this.Forward($Size) }
+})
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Rotate</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Rotates the turtle.
+.DESCRIPTION
+    Rotates the turtle by the specified angle.
+#&gt;
+param([double]$Angle = 90)
+$this.Heading += $Angle
+return $this
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Save</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Saves the turtle.
+.DESCRIPTION
+    Saves the current turtle to a file.
+.LINK
+    Save-Turtle
+#&gt;
+param(
+[Parameter(Mandatory)]
+[string]
+$FilePath,
+
+[string]
+$Property
+)
+
+$saveSplat = [Ordered]@{FilePath = $FilePath}
+if ($Property) {
+    $saveSplat.Property = $property
+}
+
+return $this | Save-Turtle @saveSplat
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Scissor</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a Scissor
+.DESCRIPTION
+    Draws a Scissor in turtle.
+
+    A Scissor is a pair of intersecting lines, drawn at an angle.
+.EXAMPLE
+    Turtle Scissor Save ./Scissor.svg
+#&gt;
+param(
+# The distance to travel
+[double]
+$Distance = 10,
+
+# The interior angle of the scissors
+[double]
+$Angle = 60
+)
+
+
+$this.
+    Rotate($angle). # Rotate 
+    Forward($distance). # Move Forward
+    Rotate($angle * -2). # Rotate Back
+    Forward($Distance). # Move Forward
+    Rotate($Angle) # Rotate
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>ScissorPoly</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a polygon made of Scissors    
+.DESCRIPTION
+    Draws a polygon made up of a series of Scissor shapes, followed by a rotation.
+    
+    This countiues until the total angle is approximately 360.
+.EXAMPLE
+    # When the angles are even divisors of 360, we get stars
+    Turtle ScissorPoly 84 60 72 save ./ScissorPolyStar.svg 
+.EXAMPLE    
+    Turtle ScissorPoly 23 60 72 save ./ScissorPolyStar2.svg 
+.EXAMPLE
+    Turtle ScissorPoly 23 60 40 save ./ScissorPolyStar3.svg 
+.EXAMPLE
+    # When both angles exceed 180, the star starts to overlap
+    Turtle ScissorPoly 23 90 120 save ./ScissorPoly.svg 
+.EXAMPLE
+    # When the angle is _not_ an even multiple of 360, there is much more overlap    
+    Turtle ScissorPoly 16 42 42 save ./ScissorPoly.svg
+.EXAMPLE
+    # This can get very chaotic, if it takes a while to reach a multiple of 360
+    # Build N scissor polygons
+    foreach ($n in 60..72) {
+        Turtle ScissorPoly 16 $n $n save ./ScissorPoly-$n.svg
+    }        
+.EXAMPLE
+    Turtle ScissorPoly 16 69 69 save ./ScissorPoly-69.svg
+.EXAMPLE
+    Turtle ScissorPoly 15 72 90 save ./ScissorPoly.svg 
+.EXAMPLE
+    # And angle of exactly 90 will produce a series of spokes
+    Turtle ScissorPoly 23 45 90 save ./Compass.svg
+.EXAMPLE
+    # These spokes become pointy stars as we iterate past 90
+    foreach ($n in 91..99) {
+        Turtle ScissorPoly 23 45 $n save "./Scissor-45-$n.svg"
+    }
+.EXAMPLE
+    Turtle ScissorPoly 23 45 98 save ./ScissorPoly-45-98.svg
+.EXAMPLE
+    Turtle ScissorPoly 23 45 99 save ./ScissorPoly-45-99.svg
+#&gt;
+param(
+# The distance of each side of the scissor
+[double]
+$Distance,
+
+# The angle between each scissor
+[double]
+$Angle,
+
+# The angle of each scissor, or the degree out of phase a regular N-gon would be.
+[double]
+$Phase
+)
+
+$totalTurn = 0
+
+do {
+    $this = $this.Scissor($Distance, $Phase).Left($angle)
+    $totalTurn -= $angle
+}
+until (
+    (-not ([Math]::Round($totalTurn, 5) % 360 ))
+)
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>SierpinskiArrowheadCurve</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Generates a Sierpinski Arrowhead Curve.
+.DESCRIPTION
+    Generates a Sierpinski Arrowhead Curve using turtle graphics.
+.LINK
+    https://en.wikipedia.org/wiki/Sierpi%C5%84ski_curve#Representation_as_Lindenmayer_system_2
+.EXAMPLE
+    $turtle.SierpinskiArrowheadCurve().Pattern.Save("$pwd/SierpinskiArrowhead.svg")
+.EXAMPLE
+    $turtle.Clear()
+    $turtle.SierpinskiArrowheadCurve(10,4)
+    $turtle.PatternTransform = @{
+        'scale' = 0.9        
+    }    
+    $turtle.PatternAnimation = "
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='scale' values='1;0.9;1' dur='19s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewY' values='0;-30;30;-30;0' dur='67s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewX' values='0;-30;30;-30;0' dur='83s' repeatCount='indefinite' additive='sum' /&gt;
+    "
+    $turtle.Pattern.Save("$pwd/SierpinskiArrowhead2.svg")
+#&gt;
+
+param(
+    [double]$Size = 30,
+    [int]$Order = 8,
+    [double]$Angle = 60
+)
+return $this.LSystem('XF',  [Ordered]@{
+    X = 'YF + XF + Y'
+    Y = 'XF - YF - X'
+}, $Order, [Ordered]@{
+    '\+'    = { $this.Rotate($Angle)        }
+    '-'     = { $this.Rotate($Angle * -1)   }
+    'F'     = { $this.Forward($Size)        }
+})
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>SierpinskiCurve</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Generates a Sierpinski Curve.
+.DESCRIPTION
+    Generates a Sierpinski Curve using turtle graphics.
+.LINK
+    https://en.wikipedia.org/wiki/Sierpi%C5%84ski_curve#Representation_as_Lindenmayer_system
+.EXAMPLE
+    $turtle.SierpinskiCurve().Pattern.Save("$pwd/SierpinskiCurve.svg")
+.EXAMPLE
+    $turtle.Clear()
+    $turtle.SierpinskiCurve(10,4)
+    $turtle.PatternTransform = @{
+        'scale' = 0.9        
+    }    
+    $turtle.PatternAnimation = "
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='scale' values='1;0.9;1' dur='19s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewY' values='0;-30;30;-30;0' dur='67s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewX' values='0;-30;30;-30;0' dur='83s' repeatCount='indefinite' additive='sum' /&gt;
+    "
+    $turtle.Pattern.Save("$pwd/SierpinskiCurve2.svg")
+#&gt;
+param(
+    [double]$Size = 20,
+    [int]$Order = 4,
+    [double]$Angle = 45
+)
+return $this.LSystem('F--XF--F--XF',  [Ordered]@{
+    X ='XF+G+XF--F--XF+G+X'
+}, $Order, [Ordered]@{
+    '\+'    = { $this.Rotate($Angle) }
+    '-'     = { $this.Rotate($Angle * -1) }
+    '[FG]'  = { $this.Forward($Size) }
+})
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>SierpinskiSquareCurve</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Generates a Sierpinski Square Curve.
+.DESCRIPTION
+    Generates a Sierpinski Square Curve using turtle graphics.
+.LINK
+    https://en.wikipedia.org/wiki/Sierpi%C5%84ski_curve#Representation_as_Lindenmayer_system
+.EXAMPLE
+    $turtle.SierpinskiSquareCurve().Pattern.Save("$pwd/SierpinskiSquareCurve.svg")
+.EXAMPLE
+    $turtle.Clear()
+    $turtle.SierpinskiSquareCurve(10,4)
+    $turtle.PatternTransform = @{
+        'scale' = 0.9        
+    }    
+    $turtle.PatternAnimation = "
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='scale' values='1;0.9;1' dur='19s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewY' values='0;-30;30;-30;0' dur='67s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewX' values='0;-30;30;-30;0' dur='83s' repeatCount='indefinite' additive='sum' /&gt;
+    "
+    $turtle.Pattern.Save("$pwd/SierpinskiSquareCurve2.svg")
+#&gt;
+param(
+    [double]$Size = 20,
+    [int]$Order = 5,
+    [double]$Angle = 90
+)
+return $this.LSystem('X',  [Ordered]@{
+    X = 'XF-F+F-XF+F+XF-F+F-X'
+}, $Order, [Ordered]@{
+    '\+'    = { $this.Rotate($Angle) }
+    '-'     = { $this.Rotate($Angle * -1) }
+    '[FG]'  = { $this.Forward($Size) }
+})
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>SierpinskiTriangle</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Generates a Sierpinski Triangle.
+.DESCRIPTION
+    Generates a Sierpinski Triangle using turtle graphics.
+.LINK
+    https://en.wikipedia.org/wiki/Sierpi%C5%84ski_triangle
+.EXAMPLE
+    $turtle.SierpinskiTriangle().Pattern.Save("$pwd/SierpinskiTriangle.svg")
+.EXAMPLE
+    $turtle.Clear()
+    $turtle.SierpinskiTriangle(10,6)
+    $turtle.PatternTransform = @{
+        'scale' = 0.9        
+    }    
+    $turtle.PatternAnimation = "
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='scale' values='1;0.9;1' dur='19s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewY' values='0;-30;30;-30;0' dur='67s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewX' values='0;-30;30;-30;0' dur='83s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='rotate' values='0;360' dur='163s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='translate' values='0 0;200 200;0 0' dur='283s' repeatCount='indefinite' additive='sum' /&gt;
+    "
+    $turtle.Pattern.Save("$pwd/SierpinskiTriangle2.svg")
+#&gt;
+param(
+    [double]$Size = 200,
+    [int]$Order = 2,
+    [double]$Angle = 120
+)
+return $this.LSystem('F-G-G',  [Ordered]@{
+    F = 'F-G+F+G-F'
+    G = 'GG'
+}, $Order, [Ordered]@{
+    '\+'    = { $this.Rotate($Angle) }
+    '-'     = { $this.Rotate($Angle * -1) }
+    '[FG]'  = { $this.Forward($Size) }
+})
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Spirolateral</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a spirolateral
+.DESCRIPTION
+    Draws a spirolateral
+.LINK
+    https://en.wikipedia.org/wiki/Spirolateral
+.EXAMPLE
+    turtle spirolateral save ./Spirolateral.svg
+.EXAMPLE
+    turtle spirolateral 50 144 8 save ./Spirolateral-144-8.svg
+.EXAMPLE
+    turtle spirolateral 50 60 10 save ./Spirolateral-60-10.svg
+.EXAMPLE
+    turtle spirolateral 50 120 6 @(1,3) save ./Spirolateral-120-6-1_3.svg
+.EXAMPLE
+    turtle spirolateral 50 90 11 @(3,4,5) save ./Spirolateral-90-11-3_4_5.svg
+.EXAMPLE
+    turtle @('spirolateral',50,60,6,@(1,3),'rotate', 60 * 6 ) save ./Spirolateral-x6.svg
+#&gt;
+param(
+# The base length of each side (this will be multiplied by the step number)
+[double]
+$Side = 10,
+
+# The angle of the turn
+[double]
+$Angle = 90,
+
+# The step count.
+# This is the number of times the steps will be repeated.
+# This is also the maximum number of iterations the shape will complete.
+[int]
+$StepCount = 10,
+
+# The step numbers that are left turns (counter-clockwise).
+# This allows the creation of general spirolaterals
+[Parameter(ValueFromRemainingArguments)]
+[int[]]
+$LeftTurnSteps
+)
+
+$stepNumber = 1
+$majorStepCount = 0
+$totalTurn = 0
+do {
+    $null = for ($stepNumber = 1; $stepNumber -le [Math]::Abs($StepCount); $stepNumber++) {
+        $null = $this.Forward($side * $stepNumber)
+        if ($LeftTurnSteps) {
+            if ($LeftTurnSteps -contains $stepNumber) {
+                $totalTurn -= $angle
+                $this.Left($angle)
+            } else {
+                $totalTurn += $angle
+                $this.Right($angle)
+            }
+        } else {
+            $totalTurn += $angle
+            $this.Right($angle)
+        }
+    }
+    $majorStepCount++
+} until (
+    (-not ([Math]::Round($totalTurn, 5) % 360 )) -and 
+    $majorStepCount -le [Math]::Abs($StepCount)
+)
+
+return $this
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Square</Name>
+        <Script>
+                        param([double]$Size = 50)
+$null = foreach ($n in 1..4) {
+    $this.Forward($Size)
+    $this.Rotate(90)
+}
+return $this
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Star</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a star pattern
+.DESCRIPTION
+    Draws a star pattern with turtle graphics.
+.EXAMPLE
+    $turtle = New-Turtle
+    $turtle.Star().Pattern.Save("$pwd/Star.svg")
+.EXAMPLE
+    Move-Turtle Star | Save-Turtle "./Star.svg"
+#&gt;
+param(
+    [double]$Size = 50,
+    [int]$Points = 5
+)
+$Angle = 180 - (180 / $Points)
+foreach ($n in 1..$Points) {
+    $this.Forward($Size)
+    $this.Rotate($Angle)
+}
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Step</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Takes a Step 
+.DESCRIPTION
+    Makes a relative movement.
+.EXAMPLE
+    turtle step 5 5 step 0 -5 step -5 0 save ./stepTriangle.svg
+#&gt;
+param(
+# The DeltaX
+[double]$DeltaX = 0, 
+# The DeltaY
+[double]$DeltaY = 0
+)
+
+# If both coordinates are empty, there is no step
+if ($DeltaX -or $DeltaY) {
+    $this.Position = $DeltaX, $DeltaY
+    if ($This.IsPenDown) {
+        $this.Steps += " l $DeltaX $DeltaY"
+    } else {
+        $this.Steps += " m $DeltaX $DeltaY"
+    }
+}
+
+return $this
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>StepSpiral</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a step spiral
+.DESCRIPTION
+    Draws a spiral as a series of steps.
+
+    Each step will draw a line, rotate, and increment the length of the next step.
+
+    By default, this creates an outward spiral.
+
+    To create an inward spiral, use a negative StepSize or StepCount.
+.EXAMPLE
+    turtle StepSpiral save ./StepSpiral.svg
+.EXAMPLE
+    turtle @('StepSpiral',3, 120, 'rotate',120 * 3) save ./StepSpiralx3.svg
+.EXAMPLE
+    turtle @('StepSpiral',3, 90, 'rotate',90 * 3) save ./StepSpiralx4.svg
+#&gt;
+param(
+# The length of the first step
+[double]$Length = 1,
+# The angle to rotate after each step
+[double]$Angle = 90,
+# The amount of change per step
+[double]$StepSize = 1,
+# The number of steps.
+[int]$StepCount = 20
+)
+
+# If the step size or count is negative
+if (
+    ($stepSize -lt 0 -or $stepCount -lt 0) -and
+    $Length -in 0,1 # and the length is either the default or zero
+) {
+    # set the length to the correct maximim step size, so we can make an inward spiral.
+    $Length = ([Math]::Abs($stepSize) * [Math]::Abs($stepCount))
+} 
+elseif ($length -eq 0) {
+    # If the length is empty, default it to the step size
+    $Length = $StepSize
+}
+
+# Perform the appropriate steps
+foreach ($n in 1..([Math]::Abs($StepCount))) {
+    $this = $this.Forward($length).Rotate($angle)
+    $length += $stepSize    
+}
+# and return ourself.
+return $this
+
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Teleport</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Teleports to a specific position.
+.DESCRIPTION
+    Teleports the turtle to a specific position.
+.EXAMPLE
+    Move-Turtle Teleport 5 5 | Move-Turtle Square 10
+#&gt;
+param(
+# The X coordinate to move to.
+[double]
+$X,
+
+# The Y coordinate to move to.
+[double]
+$Y
+)
+
+$deltaX = $x - $this.X 
+$deltaY = $y - $this.Y
+$penState = $this.IsPenDown
+$this.IsPenDown = $false
+$null = $this.Step($deltaX, $deltaY)
+$this.IsPenDown = $penState
+return $this
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>TerdragonCurve</Name>
+        <Script>
+                        
+&lt;#
+.SYNOPSIS
+    Generates a Terdragon Curve.
+.DESCRIPTION
+    Generates a Terdragon curve using turtle graphics.
+.LINK
+    https://en.wikipedia.org/wiki/Dragon_curve#Terdragon
+.EXAMPLE
+    $turtle.TerdragonCurve().Pattern.Save("$pwd/TerdragonCurve.svg")
+.EXAMPLE
+    $turtle.Clear()
+    $turtle.TerdragonCurve(20,7,90)
+    $turtle.PatternTransform = @{
+        'scale' = 0.9
+        'rotate' = 45
+    }
+    
+    $turtle.PatternAnimation = "
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='scale' values='1;0.9;1' dur='19s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewY' values='30;-30;30' dur='67s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewX' values='30;-30;30' dur='83s' repeatCount='indefinite' additive='sum' /&gt;
+    "
+    $turtle.Pattern.Save("$pwd/TerdragonCurve2.svg")
+#&gt;
+param(
+    [double]$Size = 20,
+    [int]$Order = 8,
+    [double]$Angle = 120
+)
+return $this.LSystem('F',  [Ordered]@{
+    F = 'F+F-F'    
+}, $Order, [Ordered]@{
+    '\+'    = { $this.Rotate($Angle) }
+    '-'     = { $this.Rotate($Angle * -1) }
+    '[F]'  = { $this.Forward($Size) }
+})
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>TileFractal</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a Tile Fractal
+.DESCRIPTION
+    Draws a Tile Fractal, using an L-System
+.LINK
+    https://paulbourke.net/fractals/lsys/
+.EXAMPLE
+    turtle TileFractal 42 1
+.EXAMPLE
+    turtle TileFractal 42 2
+.EXAMPLE
+    turtle TileFractal 42 3
+.EXAMPLE
+    turtle TileFractal 42 4
+#&gt;
+param(
+# The size of each segment
+[double]$Size = 200,
+# The order of magnitude (the number of expansions)
+[int]$Order = 4,
+# The default angle.
+[double]$Angle = 90
+)
+return $this.LSystem('F+F+F+F',  [Ordered]@{
+    F = 'FF+F-F+F+FF'
+}, $Order, [Ordered]@{
+    '\+'    = { $this.Rotate($Angle) }
+    '-'     = { $this.Rotate($Angle * -1)}
+    'F'     = { $this.Forward($Size) }
+})
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>ToString</Name>
+        <Script>
+                        param()
+
+return "$($this.SVG.OuterXml)"
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Towards</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Determines the angle towards a point
+.DESCRIPTION
+    Determines the angle from the turtle's current heading towards a point.
+#&gt;
+param(
+# The X-coordinate
+[double]$X = 0,
+# The Y-coordinate
+[double]$Y = 0
+)
+
+# Determine the delta from the turtle's current position to the specified point
+$deltaX = $X - $this.Position.X 
+$deltaY = $Y - $this.Position.Y
+# Calculate the angle in radians and convert to degrees
+$angle = [Math]::Atan2($deltaY, $deltaX) * 180 / [Math]::PI
+# Return the angle minus the current heading (modulo 360)
+return $angle - ($this.Heading % 360)
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>Triplexity</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a Triplexity
+.DESCRIPTION
+    Draws a Triplexity Fractal, using an L-System.
+
+    Each generation of the triplexity will create an equilateral triangle with a spoke and an incomplete total rotation.
+    
+    Multiple generations of this seem to alternate between even numbered triangle shapes and odd numbered "lines" of triangles.
+.EXAMPLE
+    turtle Triplexity 42 1
+.EXAMPLE
+    turtle Triplexity 42 2
+.EXAMPLE
+    turtle Triplexity 42 3
+.EXAMPLE
+    turtle Triplexity 42 4
+#&gt;
+param(
+# The size of each segment
+[double]$Size = 42,
+# The order of magnitude (the number of expansions)
+[int]$Order = 4,
+# The default angle.
+[double]$Angle = 60
+)
+return $this.LSystem('F++F++F',  [Ordered]@{
+    F = 'F++F++FFF'
+}, $Order, [Ordered]@{
+    '\+'    = { $this.Rotate($Angle) }
+    '-'     = { $this.Rotate($Angle*-1)}
+    'F'     = { $this.Forward($Size) }
+})
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>TwinDragonCurve</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Generates a Twin Dragon Curve.
+.DESCRIPTION
+    Generates a Twin Dragon Curve using turtle graphics.
+.LINK
+    https://en.wikipedia.org/wiki/Dragon_curve#Twindragon
+.EXAMPLE
+    $turtle.TwinDragonCurve().Pattern.Save("$pwd/TwinDragonCurve.svg")
+.EXAMPLE
+    $turtle.Clear()
+    $turtle.TwinDragonCurve(20,7,90)
+    $turtle.PatternTransform = @{
+        'scale' = 0.9
+        'rotate' = 45
+    }
+    
+    $turtle.PatternAnimation = "
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='scale' values='1;0.9;1' dur='19s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewY' values='30;-30;30' dur='67s' repeatCount='indefinite' additive='sum' /&gt;
+    &lt;animateTransform attributeName='patternTransform' attributeType='XML' type='skewX' values='30;-30;30' dur='83s' repeatCount='indefinite' additive='sum' /&gt;
+    "
+    $turtle.Pattern.Save("$pwd/TwinDragonCurve2.svg")
+#&gt;
+
+param(
+    [double]$Size = 20,
+    [int]$Order = 6,
+    [double]$Angle = 90
+)
+return $this.LSystem('FX+FX+',  [Ordered]@{
+    X = 'X+YF'
+    Y = 'FX-Y'
+}, $Order, [Ordered]@{
+    '\+'    = { $this.Rotate($Angle) }
+    '-'     = { $this.Rotate($Angle * -1) }
+    '[F]'  = { $this.Forward($Size) }
+})
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>VerticalLine</Name>
+        <Script>
+                        &lt;#
+.SYNOPSIS
+    Draws a vertical line
+.DESCRIPTION
+    Draws a vertical line.  
+    
+    The heading will not be changed.
+#&gt;
+param(
+[double]
+$Distance
+)
+
+$this.GoTo($this.Position.X, $this.Position.Y + $Distance)
+
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>xcor</Name>
+        <Script>
+                        return $this.Position.X
+                    </Script>
+      </ScriptMethod>
+      <ScriptMethod>
+        <Name>ycor</Name>
+        <Script>
+                        return $this.Position.Y
+                    </Script>
+      </ScriptMethod>
+      <ScriptProperty>
+        <Name>AnimateMotion</Name>
+        <GetScriptBlock>
+                        @("&lt;animateMotion dur='$(
+    if ($this.AnimateMotionDuration) {
+        $this.AnimateMotionDuration
+    } else {
+        "$(($this.Points.Length / 2 / 10))s"
+    }
+)' repeatCount='indefinite' path='$($this.PathData)' /&gt;") -as [xml]
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>AnimateMotionDuration</Name>
+        <GetScriptBlock>
+                        if ($this.'.AnimateMotionDuration') {
+    return $this.'.AnimateMotionDuration'
+}
+$thesePoints = $this.Points
+if ($thesePoints.Length -eq 0) {
+    return "$(($thesePoints.Length / 2 / 10))s"
+}
+
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        param(
+[PSObject]
+$AnimateMotionDuration
+)
+
+if ($AnimateMotionDuration -is [TimeSpan]) {
+    $AnimateMotionDuration = $AnimateMotionDuration.TotalSeconds + 's'
+}
+
+if ($AnimateMotionDuration -is [int] -or $AnimateMotionDuration -is [double]) {
+    $AnimateMotionDuration = "${AnimateMotionDuration}s"
+}
+
+$this | Add-Member -MemberType NoteProperty -Force -Name '.AnimateMotionDuration' -Value $AnimateMotionDuration
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>BackgroundColor</Name>
+        <GetScriptBlock>
+                        param()
+
+if ($this.'.BackgroundColor') {
+    return $this.'.BackgroundColor'
+}
+
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        param(
+[PSObject]
+$value
+)
+
+$this | Add-Member NoteProperty -Name '.BackgroundColor' -Value $value -Force
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Canvas</Name>
+        <GetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Gets a turtle canvas
+.DESCRIPTION
+    Gets a turtle a canvas element.
+#&gt;
+
+@(
+    $viewBox = $this.ViewBox
+    $null, $null, $viewX, $viewY = $viewBox
+    "&lt;style&gt;canvas {max-width: 100%; height: 100%}&lt;/style&gt;"
+    "&lt;canvas id='$($this.ID)-canvas' width='$($viewX + 1)' height='$($viewY + 1)'&gt;&lt;/canvas&gt;"
+
+    "&lt;script&gt;"    
+@"
+window.onload = async function() {
+  var canvas = document.getElementById('$($this.ID)-canvas');
+  var ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '$($this.Stroke)'
+  ctx.lineWidth = '$(
+    if ($this.StrokeWidth -match '%') {
+        [Math]::Max($viewX, $viewY) * ($this.StrokeWidth -replace '%' -as [double])/100
+    } else {
+        $this.StrokeWidth
+    }
+)'
+  ctx.fillStyle = '$($this.Fill)'
+  var p = new Path2D("$($this.PathData)")
+  ctx.stroke(p)
+  ctx.fill(p)
+
+  /*Insert-Post-Processing-Here*/
+}
+"@
+    "&lt;/script&gt;"
+)
+
+
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>ClipPath</Name>
+        <GetScriptBlock>
+                        "clip-path: path(`"$($this.PathData)`");"
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>DataURL</Name>
+        <GetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Gets the turtle data URL.
+.DESCRIPTION
+    Gets the turtle symbol as a data URL.
+    
+    This can be used as an inline image in HTML, CSS, or Markdown.
+#&gt;
+$thisSymbol = $this.Symbol
+$b64 = [Convert]::ToBase64String($OutputEncoding.GetBytes($thisSymbol.outerXml))
+"data:image/svg+xml;base64,$b64"
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Duration</Name>
+        <GetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Gets the duration
+.DESCRIPTION
+    Gets the default duration of animations and morphs.
+#&gt;
+if ($this.'.Duration') { return $this.'.Duration'}
+return
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Sets the duration
+.DESCRIPTION
+    Sets the default duration used for morphs and other animations.
+#&gt;
+param(
+# The value to set
+$value
+)
+
+foreach ($v in $value) {
+    if ($v -is [Timespan]) {
+        $this | Add-Member NoteProperty '.Duration' $v -Force
+    } elseif ($v -is [double] -or $v -is [int]) {
+        $this | Add-Member NoteProperty '.Duration' ([TimeSpan]::FromSeconds($v)) -Force
+    } else {
+        Write-Warning "'$Value' is not a number or timespan"
+    }
+}
+
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Fill</Name>
+        <GetScriptBlock>
+                        if ($this.'.Fill') { 
+    return $this.'.Fill'
+}
+return 'transparent'
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        param(
+    [string]$Fill = 'transparent'
+)
+
+if (-not $this.'.Fill') {
+    $this | Add-Member -MemberType NoteProperty -Name '.Fill' -Value $Fill -Force
+} else {
+    $this.'.Fill' = $Fill
+}
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>FillRule</Name>
+        <GetScriptBlock>
+                        if (-not $this.'.PathAttribute') {
+    $this | Add-Member -MemberType NoteProperty -Name '.PathAttribute' -Value ([Ordered]@{}) -Force
+}
+if ($this.'.PathAttribute'.'fill-rule') {
+    return $this.'.PathAttribute'.'fill-rule'
+} else {
+    'nonzero'
+}
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        param(
+[ValidateSet('nonzero', 'evenodd')]
+[string]
+$fillRule = 'nonzero'
+)
+$this.PathAttribute = [Ordered]@{'fill-rule' = $fillRule.ToLower()}
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Heading</Name>
+        <GetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Gets the turtle's heading.
+.DESCRIPTION
+    Gets the current heading of the turtle.
+#&gt;
+param()
+if ($this -and -not $this.psobject.properties['.TurtleHeading']) {
+    $this.psobject.properties.add([PSNoteProperty]::new('.TurtleHeading', 0.0), $false)
+}
+return $this.'.TurtleHeading'
+
+
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Sets the turtle's heading.
+.DESCRIPTION
+    Sets the turtle's heading.  
+    
+    This is one of two key properties of the turtle, the other being its position.
+#&gt;
+param(
+# The new turtle heading.  
+[double]
+$Heading
+)
+
+if ($this -and -not $this.psobject.properties['.TurtleHeading']) {
+    $this.psobject.properties.add([PSNoteProperty]::new('.TurtleHeading', 0), $false)
+}
+$this.'.TurtleHeading' = $Heading
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Height</Name>
+        <GetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Gets the Turtle height
+.DESCRIPTION
+    Gets the Turtle's ViewBox height.
+.NOTES
+    If this has not been set, it will be automatically computed from the distance between the minimum and maximum.
+.EXAMPLE
+    turtle rotate 90 forward 100 width
+#&gt;
+param()
+if ($this.'.ViewBox') { 
+    return @($this.'.ViewBox')[-1]
+}
+
+$viewY = $this.Maximum.Y + ($this.Minimum.Y * -1)
+return $viewY
+
+
+
+
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Sets the turtle height
+.DESCRIPTION
+    Sets the Turtle viewbox height.
+.NOTES
+    Once set, it will no longer be automatically computed.
+#&gt;
+param(
+[double]
+$height
+)
+
+$viewBox = $this.ViewBox
+$this.ViewBox = $viewBox[0],$viewBox[1],$viewbox[-2], $height
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>ID</Name>
+        <GetScriptBlock>
+                        if ($this.'.ID') { return $this.'.ID'}
+return 'turtle'
+
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        param([string]$Value)
+
+$this | Add-Member NoteProperty '.ID' $Value -Force
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>IsPenDown</Name>
+        <GetScriptBlock>
+                        if ($null -ne $this.'.IsPenDown') { return $this.'.IsPenDown' }
+return $true
+
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        param(
+[bool]
+$IsDown
+)
+if ($null -eq $this.'.IsPenDown') {
+    $this | Add-Member -MemberType NoteProperty -Force -Name '.IsPenDown' -Value $IsDown
+} else {
+    $this.'.IsPenDown' = $IsDown
+}
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>JPEG</Name>
+        <GetScriptBlock>
+                        $chromiumNames = 'chromium','chrome'
+foreach ($browserName in $chromiumNames) {
+    $chromiumCommand = 
+        $ExecutionContext.SessionState.InvokeCommand.GetCommand($browserName,'Application')
+    if (-not $chromiumCommand) { 
+        $chromiumCommand = 
+            Get-Process -Name $browserName -ErrorAction Ignore | 
+            Select-Object -First 1 -ExpandProperty Path
+    }
+    if ($chromiumCommand) { break }
+}
+if (-not $chromiumCommand) {
+    Write-Error "No Chromium-based browser found. Please install one of: $($chromiumNames -join ', ')"
+    return
+}
+
+$pngRasterizer = $this.Canvas -replace '/\*Insert-Post-Processing-Here\*/', @'
+    const dataUrl = await canvas.toDataURL('image/jpeg')
+    console.log(dataUrl)
+  
+    const newImage = document.createElement('img')
+    newImage.src = dataUrl
+    document.body.appendChild(newImage)
+'@
+
+
+$appDataRoot = [Environment]::GetFolderPath("ApplicationData")
+$appDataPath = Join-Path $appDataRoot 'Turtle'
+$filePath   = Join-Path $appDataPath 'Turtle.raster.html'
+$null = New-Item -ItemType File -Force -Path $filePath -Value (
+    $pngRasterizer -join [Environment]::NewLine
+)
+# $pngRasterizer &gt; $filePath
+
+$headlessArguments = @(
+    '--headless', # run in headless mode
+    '--dump-dom', # dump the DOM to stdout
+    '--disable-gpu', # disable GPU acceleration
+    '--no-sandbox' # disable the sandbox if running in CI/CD            
+)
+
+$chromeOutput = &amp; $chromiumCommand @headlessArguments "$filePath" | Out-String 
+if ($chromeOutput -match '&lt;img\ssrc="data:image/\w+;base64,(?&lt;b64&gt;[^"]+)') {
+    ,[Convert]::FromBase64String($matches.b64)
+}
+
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Mask</Name>
+        <GetScriptBlock>
+                        $segments = @(
+"&lt;svg xmlns='http://www.w3.org/2000/svg' width='0%' height='0%'&gt;"
+    "&lt;defs&gt;"
+        "&lt;mask id='$($this.Id)-mask'&gt;"
+            $this.Symbol.OuterXml -replace '\&lt;\?[^\&gt;]+\&gt;'
+        "&lt;/mask&gt;"
+    "&lt;/defs&gt;"
+"&lt;/svg&gt;"
+)
+[xml]($segments -join '')
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Maximum</Name>
+        <GetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Gets the turtle maximum point.
+.DESCRIPTION
+    Gets the maximum point reached by the turtle.
+
+    Keeping track of this as we go is far more efficient than calculating it from the path.
+#&gt;
+if ($this.'.Maximum') {
+    return $this.'.Maximum'
+}
+return ([pscustomobject]@{ X = 0; Y = 0 })
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Minimum</Name>
+        <GetScriptBlock>
+                        if ($this.'.Minimum') {
+    return $this.'.Minimum'
+}
+return ([pscustomobject]@{ X = 0; Y = 0 })
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>OffsetPath</Name>
+        <GetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Gets the Turtle as an OffsetPath
+.DESCRIPTION
+    Gets the Turtle as an offset path.
+.LINK
+    https://developer.mozilla.org/en-US/docs/Web/CSS/offset-path
+#&gt;
+param()
+"offset-path: path('$($this.PathData)');"
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Opacity</Name>
+        <GetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Gets the turtle opacity
+.DESCRIPTION
+    Gets the opacity of the turtle path.
+#&gt;
+if (-not $this.'.PathAttribute') {
+    $this | Add-Member -MemberType NoteProperty -Name '.PathAttribute' -Value ([Ordered]@{}) -Force
+}
+if ($this.'.PathAttribute'.'opacity') {
+    return $this.'.PathAttribute'.'opacity'
+} else {
+    return 1.0
+}
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Sets the opacity
+.DESCRIPTION
+    Sets the opacity of the path
+.EXAMPLE
+    turtle forward 100 opacity 0.5 save ./dimLine.svg
+#&gt;
+param(
+[double]
+$Opacity = 'nonzero'
+)
+
+$this.PathAttribute = [Ordered]@{'opacity' = $Opacity}
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>PathAnimation</Name>
+        <GetScriptBlock>
+                        if ($this.'.PathAnimation') {
+    return $this.'.PathAnimation'
+}
+
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Sets the Turtle Path Animation
+.DESCRIPTION
+    Sets an animation for the Turtle path.
+.EXAMPLE
+    turtle flower PathAnimation ([Ordered]@{
+        attributeName = 'fill'   ; values = "#4488ff;#224488;#4488ff" ; repeatCount = 'indefinite'; dur = "4.2s" # ; additive = 'sum'
+    }, [Ordered]@{
+        attributeName = 'stroke'   ; values = "#224488;#4488ff;#224488" ; repeatCount = 'indefinite'; dur = "2.1s" # ; additive = 'sum'
+    }, [Ordered]@{
+        type = 'rotate'   ; values = 0, 360 ;repeatCount = 'indefinite'; dur = "41s"
+    }) save ./AnimatedFlower.svg
+#&gt;
+param(
+# The path animation object.
+# This may be a string containing animation XML, XML, or a dictionary containing animation settings.
+[PSObject]
+$PathAnimation
+)
+
+$newAnimation = @(foreach ($animation in $PathAnimation) {
+    if ($animation -is [Collections.IDictionary]) {
+        $animationCopy = [Ordered]@{} + $animation
+        if (-not $animationCopy['attributeType']) {
+            $animationCopy['attributeType'] = 'XML'
+        }
+        if (-not $animationCopy['attributeName']) {
+            $animationCopy['attributeName'] = 'transform'
+        }
+        if ($animationCopy.values -is [object[]]) {
+            $animationCopy['values'] = $animationCopy['values'] -join ';'
+        }
+
+        $elementName = 'animate'
+        if ($animationCopy['attributeName'] -eq 'transform') {
+            $elementName = 'animateTransform'
+        }
+
+
+        if (-not $animationCopy['dur'] -and $this.Duration) {
+            $animationCopy['dur'] = "$($this.Duration.TotalSeconds)s"
+        }
+        
+        "&lt;$elementName $(
+            @(foreach ($key in $animationCopy.Keys) {
+                " $key='$([Web.HttpUtility]::HtmlAttributeEncode($animationCopy[$key]))'"
+            }) -join ''
+        )/&gt;"
+    }
+    if ($animation -is [string]) {
+        $animation
+    }
+    if ($animation.OuterXml) {
+        $animation.OuterXml
+    }
+})
+
+$this | Add-Member -MemberType NoteProperty -Force -Name '.PathAnimation' -Value $newAnimation
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>PathAttribute</Name>
+        <GetScriptBlock>
+                        if (-not $this.'.PathAttribute') { 
+    $this | Add-Member NoteProperty '.PathAttribute' ([Ordered]@{}) -Force    
+}
+return $this.'.PathAttribute'
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        param(
+[Collections.IDictionary]
+$PathAttribute = [Ordered]@{}
+)
+
+if (-not $this.'.PathAttribute') {
+    $this | Add-Member -MemberType NoteProperty -Name '.PathAttribute' -Value ([Ordered]@{}) -Force
+}
+foreach ($key in $PathAttribute.Keys) {
+    $this.'.PathAttribute'[$key] = $PathAttribute[$key]
+}
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>PathClass</Name>
+        <GetScriptBlock>
+                        if ($this.'.PathClass') { return $this.'.PathClass'}
+return 'foreground-stroke'
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Sets the turtle path class
+.DESCRIPTION
+    Sets the css classes that apply to the turtle path.
+
+    This property will rarely be set directly, but can be handy for integrating turtle graphics into custom pages.
+#&gt;
+param(
+$PathClass
+)
+
+$this |  Add-Member -MemberType NoteProperty -Force -Name '.PathClass' -Value @($PathClass)
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>PathData</Name>
+        <GetScriptBlock>
+                        @(
+    @(
+        
+        if ($this.Start.X -and $this.Start.Y) {
+            "m $($this.Start.x) $($this.Start.y)"
+        }
+        else {
+            @("m"
+            if ($this.Minimum.X -lt 0) { 
+                -1 * $this.Minimum.X
+            } else {
+                0
+            }
+            if ($this.Minimum.Y -lt 0) {
+                -1 * $this.Minimum.Y
+            } else {
+                0
+            }) -join ' '                       
+        }
+    )  + $this.Steps
+    # @("m $($this.Start.x) $($this.Start.y) ") + $this.Steps
+) -join ' '
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>PathElement</Name>
+        <GetScriptBlock>
+                        @(
+"&lt;path id='$($this.id)-path' d='$($this.PathData)' stroke='$(
+    if ($this.Stroke) { $this.Stroke } else { 'currentColor' }
+)' stroke-width='$(
+    if ($this.StrokeWidth) { $this.StrokeWidth } else { '0.1%' }
+)' fill='$($this.Fill)' class='$(
+    $this.PathClass -join ' '
+)' transform-origin='50% 50%' $(
+    foreach ($pathAttributeName in $this.PathAttribute.Keys) {
+        " $pathAttributeName='$($this.PathAttribute[$pathAttributeName])'"
+    }
+)&gt;"
+if ($this.PathAnimation) {$this.PathAnimation}
+"&lt;/path&gt;"
+) -as [xml]
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Pattern</Name>
+        <GetScriptBlock>
+                        param()
+$segments = @(
+$viewBox = $this.ViewBox
+$null, $null, $viewX, $viewY = $viewBox
+"&lt;svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%'&gt;"
+"&lt;defs&gt;"
+    "&lt;pattern id='$($this.ID)-pattern' patternUnits='userSpaceOnUse' width='$viewX' height='$viewY' transform-origin='50% 50%'$(
+        if ($this.PatternTransform) {
+            " patternTransform='" + (
+                @(foreach ($key in $this.PatternTransform.Keys) {
+                    "$key($($this.PatternTransform[$key]))"
+                }) -join ' '
+            ) + "'"
+        }
+    )&gt;"
+        $(if ($this.PatternAnimation) { $this.PatternAnimation })
+        $this.PathElement.OuterXml
+        $this.TextElement.OuterXml        
+    "&lt;/pattern&gt;"
+"&lt;/defs&gt;"
+$(
+    if ($this.BackgroundColor) {
+        "&lt;rect width='10000%' height='10000%' x='-5000%' y='-5000%' fill='$($this.BackgroundColor)' transform-origin='50% 50%' /&gt;"
+    }
+)
+"&lt;rect width='10000%' height='10000%' x='-5000%' y='-5000%' fill='url(#$($this.ID)-pattern)' transform-origin='50% 50%' /&gt;"
+"&lt;/svg&gt;") 
+
+$segments -join '' -as [xml]
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>PatternAnimation</Name>
+        <GetScriptBlock>
+                        if ($this.'.PatternAnimation') {
+    return $this.'.PatternAnimation'
+}
+
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        param(
+[PSObject]
+$PatternAnimation
+)
+
+$newAnimation = @(foreach ($animation in $PatternAnimation) {
+    if ($animation -is [Collections.IDictionary]) {
+        $animationCopy = [Ordered]@{} + $animation
+        if (-not $animationCopy['attributeType']) {
+            $animationCopy['attributeType'] = 'XML'
+        }
+        if (-not $animationCopy['attributeName']) {
+            $animationCopy['attributeName'] = 'patternTransform'
+        }
+        if ($animationCopy.values -is [object[]]) {
+            $animationCopy['values'] = $animationCopy['values'] -join ';'
+        }
+        
+        "&lt;animateTransform $(
+            @(foreach ($key in $animationCopy.Keys) {
+                " $key='$([Web.HttpUtility]::HtmlAttributeEncode($animationCopy[$key]))'"
+            }) -join ''
+        )/&gt;"
+    }
+    if ($animation -is [string]) {
+        $animation
+    }
+})
+
+$this | Add-Member -MemberType NoteProperty -Force -Name '.PatternAnimation' -Value $newAnimation
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>PatternDataURL</Name>
+        <GetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Gets the turtle pattern data URL.
+.DESCRIPTION
+    Gets the turtle pattern as a data URL.
+    
+    This can be used as an inline image in HTML, CSS, or Markdown.
+#&gt;
+$thisPattern = $this.Pattern
+$b64 = [Convert]::ToBase64String($OutputEncoding.GetBytes($thisPattern.outerXml))
+"data:image/svg+xml;base64,$b64"
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>PatternMask</Name>
+        <GetScriptBlock>
+                        $segments = @(
+"&lt;svg xmlns='http://www.w3.org/2000/svg' width='0%' height='0%'&gt;"
+    "&lt;defs&gt;"
+        "&lt;mask id='$($this.ID)-mask'&gt;"
+            $this.Pattern.OuterXml -replace '\&lt;\?[^\&gt;]+\&gt;'
+        "&lt;/mask&gt;"
+    "&lt;/defs&gt;"    
+"&lt;/svg&gt;"
+)
+[xml]($segments -join '')
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>PatternTransform</Name>
+        <GetScriptBlock>
+                        if ($this.'.PatternTransform') {
+    return $this.'.PatternTransform'
+}
+
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        param(
+[Collections.IDictionary]
+$PatternTransform
+)
+
+$this | Add-Member -MemberType NoteProperty -Force -Name '.PatternTransform' -Value $PatternTransform
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>PNG</Name>
+        <GetScriptBlock>
+                        $chromiumNames = 'chromium','chrome'
+foreach ($browserName in $chromiumNames) {
+    $chromiumCommand = 
+        $ExecutionContext.SessionState.InvokeCommand.GetCommand($browserName,'Application')
+    if (-not $chromiumCommand) { 
+        $chromiumCommand = 
+            Get-Process -Name $browserName -ErrorAction Ignore | 
+            Select-Object -First 1 -ExpandProperty Path
+    }
+    if ($chromiumCommand) { break }
+}
+if (-not $chromiumCommand) {
+    Write-Error "No Chromium-based browser found. Please install one of: $($chromiumNames -join ', ')"
+    return
+}
+
+$pngRasterizer = $this.Canvas -replace '/\*Insert-Post-Processing-Here\*/', @'
+    const dataUrl = await canvas.toDataURL('image/png')
+    console.log(dataUrl)
+  
+    const newImage = document.createElement('img')
+    newImage.src = dataUrl
+    document.body.appendChild(newImage)
+'@
+
+
+$appDataRoot = [Environment]::GetFolderPath("ApplicationData")
+$appDataPath = Join-Path $appDataRoot 'Turtle'
+$filePath   = Join-Path $appDataPath 'Turtle.raster.html'
+$null = New-Item -ItemType File -Force -Path $filePath -Value (
+    $pngRasterizer -join [Environment]::NewLine
+)
+# $pngRasterizer &gt; $filePath
+
+$headlessArguments = @(
+    '--headless', # run in headless mode
+    '--dump-dom', # dump the DOM to stdout
+    '--disable-gpu', # disable GPU acceleration
+    '--no-sandbox' # disable the sandbox if running in CI/CD            
+)
+
+$chromeOutput = &amp; $chromiumCommand @headlessArguments "$filePath" | Out-String 
+if ($chromeOutput -match '&lt;img\ssrc="data:image/png;base64,(?&lt;b64&gt;[^"]+)') {
+    ,[Convert]::FromBase64String($matches.b64)
+}
+
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Points</Name>
+        <GetScriptBlock>
+                        $this.Steps -replace '[\w-[\d\.E\-]]+' -split '\s+' -ne '' -as [double[]]
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Position</Name>
+        <GetScriptBlock>
+                        if (-not $this.'.Position') {
+    $this |  Add-Member -MemberType NoteProperty -Force -Name '.Position' -Value ([pscustomobject]@{ X = 0; Y = 0 })
+}
+return $this.'.Position'
+
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        param([double[]]$xy)
+$x, $y = $xy
+if (-not $this.'.Position') {
+    $this |  Add-Member -MemberType NoteProperty -Force -Name '.Position' -Value ([pscustomobject]@{ X = 0; Y = 0 })
+}
+$this.'.Position'.X += $x
+$this.'.Position'.Y += $y
+$posX, $posY = $this.'.Position'.X, $this.'.Position'.Y
+if (-not $this.'.Minimum') {
+    $this |  Add-Member -MemberType NoteProperty -Force -Name '.Minimum' -Value ([pscustomobject]@{ X = 0; Y = 0 })
+}
+if (-not $this.'.Maximum') {
+    $this |  Add-Member -MemberType NoteProperty -Force -Name '.Maximum' -Value ([pscustomobject]@{ X = 0; Y = 0 })
+}
+if ($posX -lt $this.'.Minimum'.X) {
+    $this.'.Minimum'.X = $posX
+}
+if ($posY -lt $this.'.Minimum'.Y) {
+    $this.'.Minimum'.Y = $posY
+}
+if ($posX -gt $this.'.Maximum'.X) {
+    $this.'.Maximum'.X = $posX
+}
+if ($posY -gt $this.'.Maximum'.Y) {
+    $this.'.Maximum'.Y = $posY
+}
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Stack</Name>
+        <GetScriptBlock>
+                        if ($null -ne $this.'.Stack'.Count) {
+    $this | Add-Member NoteProperty '.Stack' ([Collections.Stack]::new()) -Force
+}
+$this.'.Stack'
+
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Steps</Name>
+        <GetScriptBlock>
+                        if (-not $this.'.Steps') {   
+    $this.psobject.properties.add(
+        [psnoteproperty]::new(
+            '.Steps', [Collections.Generic.List[string]]::new()
+        ), $false
+    )    
+}
+return ,$this.'.Steps'
+
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Sets the steps of the turtle.
+.DESCRIPTION
+    Sets the steps of the turtle to the specified array of strings.
+
+    This property will rarely be set directly, but will be updated every time the turtle moves.    
+#&gt;
+param(
+[string[]]
+$Steps
+)
+
+if (-not $this.'.Steps') {
+    $this |  Add-Member -MemberType NoteProperty -Force -Name '.Steps' -Value @(
+        [Collections.Generic.List[string]]::new($Steps)
+    )
+} else {
+    $this.'.Steps' = $steps
+}
+
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Stroke</Name>
+        <GetScriptBlock>
+                        if ($this.'.Stroke') {
+    return $this.'.Stroke'
+} else {
+    return 'currentcolor'
+}
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        param([string]$value)
+
+$this | Add-Member -MemberType NoteProperty -Force -Name '.Stroke' -Value $value
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>StrokeWidth</Name>
+        <GetScriptBlock>
+                        if ($this.'.StrokeWidth') {
+    return $this.'.StrokeWidth'
+} else {
+    return '0.25%'
+}
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        param([string]$value)
+
+$this | Add-Member -MemberType NoteProperty -Force -Name '.StrokeWidth' -Value $value
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>SVG</Name>
+        <GetScriptBlock>
+                        param()
+@(
+"&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='$($this.ViewBox)' transform-origin='50% 50%' width='100%' height='100%'&gt;"
+    $this.PathElement.OuterXml
+    $this.TextElement.OuterXml    
+"&lt;/svg&gt;"
+) -join '' -as [xml]
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Symbol</Name>
+        <GetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Gets the Turtle as a symbol.
+.DESCRIPTION
+    Returns the turtle as an SVG symbol element, which can be used in other SVG files.
+
+    Symbols allow a shape to be scaled and reused without having the duplicate the drawing commands.
+
+    By default, this will return a SVG defining the symbol and using it to fill the viewport.
+.EXAMPLE
+    Move-Turtle Flower |
+        Select-Object -ExpandProperty Symbol
+#&gt;
+param()
+
+@(    
+    "&lt;svg xmlns='http://www.w3.org/2000/svg' width='100%' height='100%' transform-origin='50% 50%'&gt;"
+        "&lt;symbol id='$($this.ID)-symbol' viewBox='$($this.ViewBox)' transform-origin='50% 50%'&gt;"
+            $this.PathElement.OuterXml
+            $this.TextElement.OuterXml
+        "&lt;/symbol&gt;"
+        $(
+            if ($this.BackgroundColor) {
+                "&lt;rect width='10000%' height='10000%' x='-5000%' y='-5000%' fill='$($this.BackgroundColor)' transform-origin='50% 50%' /&gt;"
+            }
+        )
+        "&lt;use href='#$($this.ID)-symbol' width='100%' height='100%' transform-origin='50% 50%' /&gt;"
+    "&lt;/svg&gt;"
+) -join '' -as [xml]
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Text</Name>
+        <GetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Gets the Turtle text
+.DESCRIPTION
+    Gets the text associated with the Turtle, if any exists.
+
+#&gt;
+return $this.'.Text'
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Sets the Turtle text
+.DESCRIPTION
+    Sets the text displayed along the turtle path.
+
+    Once this property is set, a text element will be displayed along with the turtle path.
+
+    To display only text, please also set the path's stroke to `transparent`
+#&gt;
+param(
+[string[]]
+$Text
+)
+
+$this | Add-Member NoteProperty '.Text' -Force ($text -join ' ')
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>TextAnimation</Name>
+        <GetScriptBlock>
+                        if ($this.'.TextAnimation') {
+    return $this.'.TextAnimation'
+}
+
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Sets the Turtle Text Animation
+.DESCRIPTION
+    Sets an animation for the Turtle path.
+.EXAMPLE
+    turtle rotate 90 jump 50 rotate -90 forward 100 text 'Hello World' textAnimation ([Ordered]@{
+        attributeName = 'fill'   ; values = "#4488ff;#224488;#4488ff" ; repeatCount = 'indefinite'; dur = "4.2s"
+    },[Ordered]@{
+        attributeName = 'font-size'   ; values = "1em;1.3em;1em" ; repeatCount = 'indefinite'; dur = "4.2s"
+    }) save ./textAnimation.svg
+#&gt;
+param(
+# The text animation object.
+# This may be a string containing animation XML, XML, or a dictionary containing animation settings.
+[PSObject]
+$TextAnimation
+)
+
+$newAnimation = @(foreach ($animation in $TextAnimation) {
+    if ($animation -is [Collections.IDictionary]) {
+        $animationCopy = [Ordered]@{} + $animation
+        if (-not $animationCopy['attributeType']) {
+            $animationCopy['attributeType'] = 'XML'
+        }
+        if (-not $animationCopy['attributeName']) {
+            $animationCopy['attributeName'] = 'transform'
+        }
+        if ($animationCopy.values -is [object[]]) {
+            $animationCopy['values'] = $animationCopy['values'] -join ';'
+        }
+
+        $elementName = 'animate'
+        if ($animationCopy['attributeName'] -eq 'transform') {
+            $elementName = 'animateTransform'
+        }
+
+
+        if (-not $animationCopy['dur'] -and $this.Duration) {
+            $animationCopy['dur'] = "$($this.Duration.TotalSeconds)s"
+        }
+        
+        "&lt;$elementName $(
+            @(foreach ($key in $animationCopy.Keys) {
+                " $key='$([Web.HttpUtility]::HtmlAttributeEncode($animationCopy[$key]))'"
+            }) -join ''
+        )/&gt;"
+    }
+    if ($animation -is [string]) {
+        $animation
+    }
+    if ($animation.OuterXml) {
+        $animation.OuterXml
+    }
+})
+
+$this | Add-Member -MemberType NoteProperty -Force -Name '.TextAnimation' -Value $newAnimation
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>TextAttribute</Name>
+        <GetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Gets any Text Attributes
+.DESCRIPTION
+    Gets any attributes associated with the Turtle text
+    
+#&gt;
+if (-not $this.'.TextAttribute') { 
+    $this | Add-Member NoteProperty '.TextAttribute' ([Ordered]@{}) -Force    
+}
+return $this.'.TextAttribute'
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Sets text attributes
+.DESCRIPTION
+    Sets any attributes associated with the turtle text.
+
+    These will become the attributes on the `&lt;text&gt;` element.
+#&gt;
+param(
+# The text attributes.
+[Collections.IDictionary]
+$TextAttribute = [Ordered]@{}
+)
+
+if (-not $this.'.TextAttribute') {
+    $this | Add-Member -MemberType NoteProperty -Name '.TextAttribute' -Value ([Ordered]@{}) -Force
+}
+foreach ($key in $TextAttribute.Keys) {
+    $this.'.TextAttribute'[$key] = $TextAttribute[$key]
+}
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>TextElement</Name>
+        <GetScriptBlock>
+                        
+if ($this.Text) {
+    return @(
+        "&lt;text id='$($this.ID)-text' $(
+    foreach ($TextAttributeName in $this.TextAttribute.Keys) {
+        " $TextAttributeName='$($this.TextAttribute[$TextAttributeName])'"
+    }
+)&gt;"
+            "&lt;textPath href='#$($this.id)-path'&gt;$([Security.SecurityElement]::Escape($this.Text))&lt;/textPath&gt;"
+            if ($this.TextAnimation) {$this.TextAnimation}
+        "&lt;/text&gt;"
+    ) -as [xml]
+}
+
+
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>ViewBox</Name>
+        <GetScriptBlock>
+                        if ($this.'.ViewBox') { return $this.'.ViewBox' }
+
+$viewX = $this.Maximum.X + ($this.Minimum.X * -1)
+$viewY = $this.Maximum.Y + ($this.Minimum.Y * -1)
+
+return 0, 0, $viewX, $viewY
+
+
+
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        param(
+[double[]]
+$viewBox
+)
+
+if ($viewBox.Length -gt 4) {
+    $viewBox = $viewBox[0..3]
+}
+if ($viewBox.Length -lt 4) {
+    if ($viewBox.Length -eq 3) {
+        $viewBox = $viewBox[0], $viewBox[1], $viewBox[2],$viewBox[2]
+    }
+    if ($viewBox.Length -eq 2) {
+        $viewBox = 0,0, $viewBox[0], $viewBox[1]
+    }
+    if ($viewBox.Length -eq 1) {
+        $viewBox = 0,0, $viewBox[0], $viewBox[0]
+    }
+}
+
+if ($viewBox[0] -eq 0 -and 
+    $viewBox[1] -eq 0 -and 
+    $viewBox[2] -eq 0 -and  
+    $viewBox[3] -eq 0
+) {
+    $viewX = $this.Maximum.X + ($this.Minimum.X * -1)
+    $viewY = $this.Maximum.Y + ($this.Minimum.Y * -1)
+    $this.psobject.Properties.Remove('.ViewBox')
+    return
+}
+
+$this | Add-Member -MemberType NoteProperty -Force -Name '.ViewBox' -Value $viewBox
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>WEBP</Name>
+        <GetScriptBlock>
+                        $chromiumNames = 'chromium','chrome'
+foreach ($browserName in $chromiumNames) {
+    $chromiumCommand = 
+        $ExecutionContext.SessionState.InvokeCommand.GetCommand($browserName,'Application')
+    if (-not $chromiumCommand) { 
+        $chromiumCommand = 
+            Get-Process -Name $browserName -ErrorAction Ignore | 
+            Select-Object -First 1 -ExpandProperty Path
+    }
+    if ($chromiumCommand) { break }
+}
+if (-not $chromiumCommand) {
+    Write-Error "No Chromium-based browser found. Please install one of: $($chromiumNames -join ', ')"
+    return
+}
+
+$pngRasterizer = $this.Canvas -replace '/\*Insert-Post-Processing-Here\*/', @'
+    const dataUrl = await canvas.toDataURL('image/webp')
+    console.log(dataUrl)
+  
+    const newImage = document.createElement('img')
+    newImage.src = dataUrl
+    document.body.appendChild(newImage)
+'@
+
+
+$appDataRoot = [Environment]::GetFolderPath("ApplicationData")
+$appDataPath = Join-Path $appDataRoot 'Turtle'
+$filePath   = Join-Path $appDataPath 'Turtle.raster.html'
+$null = New-Item -ItemType File -Force -Path $filePath -Value (
+    $pngRasterizer -join [Environment]::NewLine
+)
+# $pngRasterizer &gt; $filePath
+
+$headlessArguments = @(
+    '--headless', # run in headless mode
+    '--dump-dom', # dump the DOM to stdout
+    '--disable-gpu', # disable GPU acceleration
+    '--no-sandbox' # disable the sandbox if running in CI/CD            
+)
+
+$chromeOutput = &amp; $chromiumCommand @headlessArguments "$filePath" | Out-String 
+if ($chromeOutput -match '&lt;img\ssrc="data:image/\w+;base64,(?&lt;b64&gt;[^"]+)') {
+    ,[Convert]::FromBase64String($matches.b64)
+}
+
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Width</Name>
+        <GetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Gets the Turtle width
+.DESCRIPTION
+    Gets the Turtle's ViewBox width.
+.NOTES
+    If this has not been set, it will be automatically computed from the distance between the minimum and maximum.
+.EXAMPLE
+    turtle forward 100 width
+#&gt;
+if ($this.'.ViewBox') { 
+    return @($this.'.ViewBox')[-2]
+}
+
+$viewX = $this.Maximum.X + ($this.Minimum.X * -1)
+return $viewX
+
+
+
+                    </GetScriptBlock>
+        <SetScriptBlock>
+                        &lt;#
+.SYNOPSIS
+    Sets the turtle width
+.DESCRIPTION
+    Sets the Turtle viewbox width.
+.NOTES
+    Once set, it will no longer be automatically computed.
+#&gt;
+param(
+# The new viewbox width.
+[double]
+$Width
+)
+
+$viewBox = $this.ViewBox
+$this.ViewBox = $viewBox[0],$viewBox[1],$width, $viewBox[-1]
+
+                    </SetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>X</Name>
+        <GetScriptBlock>
+                        $this.Position.X
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <ScriptProperty>
+        <Name>Y</Name>
+        <GetScriptBlock>
+                        $this.Position.Y
+                    </GetScriptBlock>
+      </ScriptProperty>
+      <NoteProperty>
+        <Name>DefaultDisplay</Name>
+        <Value>Heading
+Position
+</Value>
+      </NoteProperty>
+    </Members>
+  </Type>
+</Types>

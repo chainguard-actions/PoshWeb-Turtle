@@ -1,0 +1,58 @@
+name: Test basic Run input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/act-harness
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: true
+
+      - name: Install PowerShell
+        run: |
+          if command -v pwsh &>/dev/null; then
+            echo "pwsh already installed: $(pwsh --version)"
+            exit 0
+          fi
+          apt-get update -qq 2>/dev/null || true
+          apt-get install -y curl apt-transport-https 2>/dev/null || true
+          UBUNTU_VERSION=$(. /etc/os-release && echo "$VERSION_ID")
+          curl -sSL "https://packages.microsoft.com/config/ubuntu/${UBUNTU_VERSION}/packages-microsoft-prod.deb" \
+            -o /tmp/packages-microsoft-prod.deb 2>/dev/null || true
+          if [ -f /tmp/packages-microsoft-prod.deb ]; then
+            dpkg -i /tmp/packages-microsoft-prod.deb
+            apt-get update -qq
+            apt-get install -y powershell
+          fi
+          pwsh --version
+
+      - name: Set up git for action
+        run: |
+          git config --global user.email "test-user@noreply.github.com"
+          git config --global user.name "test-user"
+          # Set up a local bare remote so git pull inside the action succeeds
+          git init --bare /tmp/local-remote.git
+          git remote set-url origin /tmp/local-remote.git 2>/dev/null || \
+            git remote add origin /tmp/local-remote.git 2>/dev/null || true
+          git push origin act-harness 2>/dev/null || true
+          git branch --set-upstream-to=origin/act-harness act-harness 2>/dev/null || true
+
+      - id: action
+        uses: .
+        with:
+          Run: |
+            Write-Host "Hello from Turtle!"
+            "Turtle ran successfully" | Out-Host
+          NoPush: "true"
+          NoCommit: "true"
+          UserName: "test-user"
+          UserEmail: "test-user@noreply.github.com"
+
+      - name: Assert action completed without error
+        run: |
+          echo "Action step completed"
+          echo "PASS"
