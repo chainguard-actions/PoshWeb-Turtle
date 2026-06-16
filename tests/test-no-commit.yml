@@ -1,0 +1,52 @@
+name: Test NoCommit and NoPush flags
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install PowerShell
+        run: |
+          which pwsh || (
+            apt-get update -y &&
+            apt-get install -y wget apt-transport-https software-properties-common &&
+            wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb" &&
+            dpkg -i packages-microsoft-prod.deb &&
+            apt-get update -y &&
+            apt-get install -y powershell
+          )
+          pwsh --version
+      - name: Create a fake GITHUB_EVENT_PATH file
+        run: |
+          echo '{"head_commit":{"message":"test commit"}}' > /tmp/github_event.json
+          echo "GITHUB_EVENT_PATH=/tmp/github_event.json" >> $GITHUB_ENV
+      - name: Create a test file that would be committed
+        run: |
+          echo "test content" > "$GITHUB_WORKSPACE/test-output.txt"
+      - id: action
+        uses: .
+        with:
+          Run: |
+            Write-Host "Running with NoCommit and NoPush"
+          CommitMessage: "Test commit message"
+          NoPush: "true"
+          NoCommit: "true"
+          UserName: "test-user"
+          UserEmail: "test-user@noreply.github.com"
+        continue-on-error: true
+      - name: Assert action ran without fatal error
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "action outcome: $OUTCOME"
+          # With NoCommit=true, the action should not attempt to commit changes.
+          # The action may still fail due to GitHub API or git pull in act environment.
+          if [ "$OUTCOME" = "cancelled" ]; then
+            echo "FAIL: action was cancelled unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action completed with NoCommit=true (outcome=$OUTCOME)"

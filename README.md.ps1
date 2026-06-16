@@ -1,3 +1,15 @@
+<#
+.SYNOPSIS
+    Turtle Graphics in PowerShell
+.EXAMPLE
+    .\README.md.ps1 > .\README.md    
+#>
+#requires -Module Turtle
+param()
+
+#region Introduction
+
+@"
 # Turtle
 
 <div align='center'>
@@ -26,26 +38,33 @@ We can turn, and we can take a step forward.
 
 Turtle graphics starts with these two operations:
 
-* Rotate() rotates the turtle
-* Forward() moves forward
+* `Rotate()` rotates the turtle
+* `Forward()` moves forward
 
 We can easily keep a list of these steps in memory, and draw them with [SVG](https://developer.mozilla.org/en-US/docs/Web/SVG).
 
 We can make Turtle in any language.
 
 This module makes Turtle in PowerShell.
+"@
+
+#endregion Introduction
+
+#region Installation
+
+@"
 ### Installing and Importing
 
 We can install Turtle from the PowerShell Gallery:
 
 ~~~PowerShell
-Install-Module Turtle -Scope CurrentUser -Force
+$({Install-Module Turtle -Scope CurrentUser -Force})
 ~~~
 
 Then we can import it like any other module
 
 ~~~PowerShell
-Import-Module Turtle -Force -PassThru
+$({Import-Module Turtle -Force -PassThru})
 ~~~
 
 #### Cloning and Importing
@@ -53,12 +72,19 @@ Import-Module Turtle -Force -PassThru
 You can also clone the repository and import the module
 
 ~~~PowerShell
-
+$({
 git clone https://github.com/PowerShellWeb/Turtle
 cd ./Turtle
 Import-Module ./ -Force -PassThru
-
+})
 ~~~
+"@
+
+#endregion Installation
+
+#region Turtle PowerShell GitHub Action
+
+@"
 
 ### Turtle GitHub Action
 
@@ -77,31 +103,46 @@ What does this give us?
 
 **We Can Generate Turtle Graphics in GitHub Workflows**
 
+"@
+
+#endregion Turtle PowerShell GitHub Action
+
+
+#region Getting Started
+@"
 ### Getting Started
 
 Once we've imported Turtle, we can create any number of turtles, and control them with commands and methods.
 
 The turtle is represented as an object, and any number of commands can make or move turtles.
 
-* New-Turtle created a turtle
-* Move-Turtle performs a single turtle movement
-* Set-Turtle changes the turtle's properties
-* Save-Turtle saves the output of a turtle.
+* `New-Turtle` created a turtle
+* `Move-Turtle` performs a single turtle movement
+* `Set-Turtle` changes the turtle's properties
+* `Save-Turtle` saves the output of a turtle.
 
-Last but not least:  Get-Turtle lets you run multiple steps of turtle, and is aliased to 	urtle.
+Last but not least:  `Get-Turtle` lets you run multiple steps of turtle, and is aliased to `turtle`.
 
+"@
+
+@"
 
 ### Drawing Squares
 
 <div align='center'>
-
+$(
+    $null = Get-Turtle Square 10 | 
+        Set-Turtle -Property Stroke '#4488ff' |
+        Save-Turtle -Path ./Examples/Square.svg
+)
 <img src='./Examples/Square.svg' alt='Square' width='50%' />
 </div>
 
 Let's start simple, by drawing a square with a series of commands.
 
 ~~~PowerShell
-
+$(
+$drawSquare1 = {
 New-Turtle | 
     Move-Turtle Forward 10 |
     Move-Turtle Rotate 90 |
@@ -112,9 +153,16 @@ New-Turtle |
     Move-Turtle Forward 10 |
     Move-Turtle Rotate 90 |
     Save-Turtle "./Square.svg"
-
+}
+$drawSquare1
+)
 ~~~
 
+"@
+
+
+
+@'
 We can also write this using a method chain:
 
 ~~~PowerShell
@@ -162,6 +210,11 @@ So our shortest square can be written as:
 ~~~PowerShell
 turtle square 10 | Save-Turtle ./Square.svg
 ~~~
+'@
+
+
+
+@'
 
 ### Drawing Other Shapes
 
@@ -179,22 +232,67 @@ foreach ($n in 1..6) {
 $turtle | 
     Save-Turtle "./Hexagon.svg" 
 ~~~
-<div align='center'>
+'@
 
+@"
+<div align='center'>
+$(
+$null = turtle ('Forward', 10, 'Rotate', 60  * 6) | 
+    Set-Turtle -Property Stroke '#4488ff' |
+    Save-Turtle -Path ./Examples/Hexagon.svg
+)
 <img src='./Examples/Hexagon.svg' alt='Hexagon' width='50%' />
 </div>
+"@
+
+@"
 Because this Turtle generates SVG, we can also use it to create patterns.
+"@
 
-~~~PowerShell
-
+$MakeHexagonPattern = {
     turtle ('Forward', 10, 'Rotate', 60  * 6) | 
         Set-Turtle -Property Stroke '#4488ff' |
         Save-Turtle -Path ./Examples/HexagonPattern.svg -Property Pattern
+}
 
+
+@"
+
+~~~PowerShell
+$MakeHexagonPattern
 ~~~
+"@
+
+$HexPattern = . $MakeHexagonPattern
+
+@"
 <div align='center'>
-<img src='./Examples/HexagonPattern.svg' alt='Hexagon Pattern' width='50%' />
+<img src='./Examples/$($HexPattern.Name)' alt='Hexagon Pattern' width='50%' />
 </div>
+"@
+
+
+#region LSystems
+
+$box1 = {
+    Turtle BoxFractal 5 1 |
+    Set-Turtle Stroke '#4488ff' |
+    Save-Turtle ./Examples/BoxFractal1.svg
+}
+
+$box2 = {
+    Turtle BoxFractal 5 2 |
+    Set-Turtle Stroke '#4488ff' |
+    Save-Turtle ./Examples/BoxFractal2.svg
+}
+
+$box3 = {
+    Turtle BoxFractal 5 3 |
+    Set-Turtle Stroke '#4488ff' |
+    Save-Turtle ./Examples/BoxFractal3.svg
+}
+
+@"
 
 ### Drawing Fractals
 
@@ -210,86 +308,94 @@ L-Systems describe:
 
 For example, let's show how we contruct the [Box Fractal](https://en.wikipedia.org/wiki/Vicsek_fractal)
 
-Our Axiom is F-F-F-F.
+Our Axiom is `F-F-F-F`.
 
 This should look familiar:  it's a shorthand for the squares we drew earlier.
 
 It basically reads "go forward, then left, four times"
 
-Our Rule is F = 'F-F+F+F-F'.
+Our Rule is `F = 'F-F+F+F-F'`.
 
-This means every time we encounter F, we want to replace it with F-F+F+F-F.
+This means every time we encounter `F`, we want to replace it with `F-F+F+F-F`.
 
 This will turn our one box into 6 new boxes.  If we repeat it again, we'll get 36 boxes.  Once more and we're at 216 boxes.
 
 Lets show the first three generations of the box fractal:
 
 ~~~PowerShell
+$box1
 
-    Turtle BoxFractal 5 1 |
-    Set-Turtle Stroke '#4488ff' |
-    Save-Turtle ./Examples/BoxFractal1.svg
+$box2
 
-
-
-    Turtle BoxFractal 5 2 |
-    Set-Turtle Stroke '#4488ff' |
-    Save-Turtle ./Examples/BoxFractal2.svg
-
-
-
-    Turtle BoxFractal 5 3 |
-    Set-Turtle Stroke '#4488ff' |
-    Save-Turtle ./Examples/BoxFractal3.svg
-
+$box3
 ~~~
-
+$(
+    $null = @(
+        . $box1
+        . $box2
+        . $box3
+    )
+)
 
 <div align='center'>
 <img src='./Examples/BoxFractal1.svg' alt='Box Fractal 1' width='50%' />
 <img src='./Examples/BoxFractal2.svg' alt='Box Fractal 2' width='50%' />
 <img src='./Examples/BoxFractal3.svg' alt='Box Fractal 3' width='50%' />
 </div>
+"@
+
+
+@"
 This implementation of Turtle has quite a few built-in fractals.
 
 For example, here is an example of a pattern comprised of Koch Snowflakes:
+"@
 
-~~~PowerShell
-
+$MakeSnowflakePattern = {
     turtle KochSnowflake 2.5 4 |     
         Set-Turtle -Property StrokeWidth '0.1%' | 
         Set-Turtle -Property Stroke '#4488ff' | 
         Set-Turtle -Property PatternTransform -Value @{scale = 0.5 } |
         Save-Turtle -Path ./Examples/KochSnowflakePattern.svg -Property Pattern
+}
 
+
+@"
+
+~~~PowerShell
+$MakeSnowflakePattern
 ~~~
+"@
+
+$SnowFlakePattern = . $MakeSnowflakePattern
+
+@"
 <div align='center'>
-<img src='./Examples/KochSnowflakePattern.svg' alt='Snowflake Pattern' width='50%' />
+<img src='./Examples/$($SnowFlakePattern.Name)' alt='Snowflake Pattern' width='50%' />
 </div>
+"@
+
+@"
 We can also animate the pattern, for endless variety:
 
 ~~~PowerShell
-$turtle = turtle KochSnowflake 10 4 | 
-    Set-Turtle -Property PatternTransform -Value @{scale=0.33} |
-    set-turtle -property Fill -value '#4488ff' |
-    Set-Turtle -Property PatternAnimation -Value ([Ordered]@{
-        type = 'scale'    ; values = 0.66,0.33, 0.66 ; repeatCount = 'indefinite' ;dur = "23s"; additive = 'sum'
-    }, [Ordered]@{
-        type = 'rotate'   ; values = 0, 360 ;repeatCount = 'indefinite'; dur = "41s"; additive = 'sum'
-    }, [Ordered]@{
-        type = 'skewX'    ; values = -30,30,-30;repeatCount = 'indefinite';dur = "83s";additive = 'sum'
-    }, [Ordered]@{
-        type = 'skewY'    ; values = 30,-30, 30;repeatCount = 'indefinite';additive = 'sum';dur = "103s"
-    }, [Ordered]@{
-        type = 'translate';values = "0 0","42 42", "0 0";repeatCount = 'indefinite';additive = 'sum';dur = "117s"
-    })    
-    
-$turtle | save-turtle -Path ./EndlessSnowflake.svg -Property Pattern
-Pop-Location
+$(
+    @(Get-Content ./Examples/EndlessSnowflake.turtle.ps1 | 
+    Select-Object -Skip 1) -join [Environment]::NewLine
+)
 ~~~
+"@
+
+@"
 <div align='center'>
 <img src='./Examples/EndlessSnowflake.svg' alt='Endless Snowflake Pattern' width='100%' />
 </div>
+"@
+
+#endregion LSystems
+
+#region Turtles in HTML
+@"
 
 ### Turtles in HTML
 
@@ -309,10 +415,16 @@ Anything we do with our turtle should work within a webpage.
 
 There are a few properties of the turtle that may be helpful:
 
-* .Canvas returns the turtle rendered in an HTML canvas
-* .OffsetPath returns the turtle as an offset path
-* .ClipPath returns the turtle as a clip path
+* `.Canvas` returns the turtle rendered in an HTML canvas
+* `.OffsetPath` returns the turtle as an offset path
+* `.ClipPath` returns the turtle as a clip path
 
+"@
+#endregion Turtles in HTML
+
+
+#region Turtles in PNG
+@"
 
 ### Turtles in Raster
 
@@ -320,7 +432,7 @@ Because our Turtle can be painted onto an HTML canvas, we can easily turn it int
 
 This works by launching the browser in headless mode, rasterizing the image, and returning the bytes.
 
-Any turtle can be saved as a PNG, JPEG, and WEBP.
+Any turtle can be saved as a `PNG`, `JPEG`, and `WEBP`.
 
 ~~~PowerShell
 turtle SierpinskiTriangle |
@@ -328,6 +440,11 @@ turtle SierpinskiTriangle |
     Save-Turtle ./SierpinskiTriangle.png
 ~~~
 
+"@
+#endregion Turtles in PNG
+
+#region Call To Action
+@"
 
 ### Turtles are Cool
 
@@ -343,8 +460,12 @@ Have fun!
 
 Hope this helps!
 
+"@
+#endregion Call To Action
 
 
-## Privacy
+# "![SierpinskiTriangle](./Examples/EndlessSierpinskiTrianglePattern.svg)"
 
-This Action contacts Chainguard's licensing server to verify authorization. Connection metadata (IP address, GitHub repository identifier, timestamp, and any metadata encoded in the auth token) is transmitted to Chainguard, Inc. even if authorization is denied in accordance with our [Privacy Notice](https://www.chainguard.dev/legal/privacy-notice)
+
+""
+

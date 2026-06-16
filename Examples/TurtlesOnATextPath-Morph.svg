@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" transform-origin="50% 50%">
+  <symbol id="turtle-symbol" viewBox="0 0 173.205080756888 100" transform-origin="50% 50%">
+    <path id="turtle-path" d="m 0 50  m 0 50  l 173.205080756888 -100" stroke="currentcolor" stroke-width="0.25%" fill="transparent" class="foreground-stroke" transform-origin="50% 50%">
+      <animate attributeName="d" values="m 0 0  m 0 50  l 196.961550602442 -34.729635533386;m 0 0  m 0 50  l 199.238939618349 -17.4311485495316;m 0 0  m 0 50  l 196.961550602442 -34.729635533386" repeatCount="indefinite" dur="4.2s" attributeType="XML" />
+    </path>
+    <text id="turtle-text">
+      <textPath href="#turtle-path">turtles on a text path</textPath>
+      <animate attributeName="fill" values="#4488ff;#224488;#4488ff" repeatCount="indefinite" dur="4.2s" attributeType="XML" />
+      <animate attributeName="font-size" values="1em;1.3em;1em" repeatCount="indefinite" dur="4.2s" attributeType="XML" />
+      <animate attributeName="textLength" values="100%;1%;100%" repeatCount="indefinite" dur="4.2s" attributeType="XML" />
+      <animate attributeName="x" values="-100%; 100%; -50%" repeatCount="indefinite" dur="4.2s" attributeType="XML" />
+    </text>
+  </symbol>
+  <use href="#turtle-symbol" width="100%" height="100%" transform-origin="50% 50%" />
+</svg>
