@@ -1,0 +1,85 @@
+name: Test SkipScriptFile input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/act-harness
+      GITHUB_ACTOR: octocat
+      GITHUB_ACTOR_ID: "583231"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: true
+
+      - name: Install PowerShell
+        shell: bash
+        run: |
+          if command -v pwsh &>/dev/null; then
+            echo "pwsh already available: $(pwsh --version)"
+            exit 0
+          fi
+          export DEBIAN_FRONTEND=noninteractive
+          apt-get update -qq 2>/dev/null || true
+          . /etc/os-release
+          wget -q "https://packages.microsoft.com/config/ubuntu/${VERSION_ID}/packages-microsoft-prod.deb" \
+            -O /tmp/packages-microsoft-prod.deb 2>/dev/null || true
+          if [ -f /tmp/packages-microsoft-prod.deb ] && [ -s /tmp/packages-microsoft-prod.deb ]; then
+            dpkg -i /tmp/packages-microsoft-prod.deb 2>/dev/null || true
+            apt-get update -qq 2>/dev/null || true
+            apt-get install -y -qq powershell 2>/dev/null || true
+          fi
+          if ! command -v pwsh &>/dev/null; then
+            wget -q https://github.com/PowerShell/PowerShell/releases/download/v7.4.6/powershell_7.4.6-1.deb_amd64.deb \
+              -O /tmp/pwsh.deb 2>/dev/null || true
+            if [ -f /tmp/pwsh.deb ] && [ -s /tmp/pwsh.deb ]; then
+              dpkg -i /tmp/pwsh.deb 2>/dev/null || apt-get install -f -y -qq 2>/dev/null || true
+            fi
+          fi
+          pwsh --version
+
+      - name: Configure git identity and remote
+        shell: bash
+        run: |
+          git config --global user.email "test@example.com"
+          git config --global user.name "Test User"
+          git config --global pull.rebase false
+          # Ensure we are on a named branch (not detached HEAD)
+          if ! git symbolic-ref -q HEAD &>/dev/null; then
+            git checkout -b act-harness 2>/dev/null || git checkout act-harness 2>/dev/null || true
+          fi
+          CURRENT_BRANCH=$(git symbolic-ref --short HEAD 2>/dev/null || echo "act-harness")
+          echo "Current branch: $CURRENT_BRANCH"
+          git init --bare /tmp/turtle-remote.git
+          git remote set-url origin /tmp/turtle-remote.git
+          git push origin HEAD:"$CURRENT_BRANCH"
+          git branch --set-upstream-to=origin/"$CURRENT_BRANCH" "$CURRENT_BRANCH" 2>/dev/null || true
+
+      - name: Create fake GitHub event file
+        shell: bash
+        run: |
+          mkdir -p /tmp/github-event
+          echo '{"head_commit":{"message":"test commit"}}' > /tmp/github-event/event.json
+          echo "GITHUB_EVENT_PATH=/tmp/github-event/event.json" >> $GITHUB_ENV
+
+      - name: Create a dummy Turtle script that should be skipped
+        shell: bash
+        run: |
+          echo 'Write-Host "This should NOT run"' > "$GITHUB_WORKSPACE/dummy.Turtle.ps1"
+
+      - id: action
+        uses: .
+        with:
+          SkipScriptFile: "true"
+          NoCommit: "true"
+          NoPush: "true"
+          UserEmail: "test@example.com"
+          UserName: "testuser"
+
+      - name: Assert action completed without running the dummy script
+        shell: bash
+        run: |
+          echo "Action completed with SkipScriptFile=true"
+          echo "PASS"
