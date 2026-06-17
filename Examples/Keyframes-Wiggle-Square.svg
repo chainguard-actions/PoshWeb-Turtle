@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 42 42" transform-origin="50% 50%" width="100%" height="100%">
+  <style>
+@keyframes wiggle3d {
+  0%,100% {
+    transform: rotateX(-3deg) rotateY(-3deg) rotateZ(-3deg);
+  }
+  50% {
+    transform: rotateX(3deg) rotateY(3deg) rotateZ(3deg);
+  }
+}
+.wiggle3d {
+    animation-name: wiggle3d;
+    animation-duration: 4.2s;
+    animation-iteration-count: infinite;
+}
+</style>
+  <path id="wiggle-square-path" d="m 0 0   l 42 0 l 0 42 l -42 0 l -0 -42" stroke="#224488" stroke-width="0.25%" fill="#4488ff" class="wiggle3d" transform-origin="50% 50%">
+  </path>
+</svg>

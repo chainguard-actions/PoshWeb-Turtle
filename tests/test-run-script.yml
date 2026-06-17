@@ -1,0 +1,61 @@
+name: Test Run input with inline PowerShell script
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/act-harness
+      GITHUB_ACTOR: test-user
+      GITHUB_ACTOR_ID: ""
+      GIT_TERMINAL_PROMPT: "0"
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Install PowerShell
+        run: |
+          set -e
+          if command -v pwsh &>/dev/null; then
+            echo "pwsh already installed: $(pwsh --version)"
+          else
+            # Try apt-get first (Microsoft repo)
+            if apt-get install -y powershell 2>/dev/null; then
+              echo "Installed via apt-get"
+            else
+              # Fallback: download tarball
+              PWSH_VERSION="7.4.6"
+              echo "Downloading PowerShell ${PWSH_VERSION}..."
+              curl -sSL "https://github.com/PowerShell/PowerShell/releases/download/v${PWSH_VERSION}/powershell-${PWSH_VERSION}-linux-x64.tar.gz" -o /tmp/powershell.tar.gz
+              mkdir -p /opt/microsoft/powershell/7
+              tar -xzf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7
+              chmod +x /opt/microsoft/powershell/7/pwsh
+              ln -sf /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
+            fi
+            pwsh --version
+          fi
+      - name: Configure git and set up local remote for git pull
+        run: |
+          git config --global user.email "test@example.com"
+          git config --global user.name "test-user"
+          git config --global pull.rebase false
+          # Set up a local remote so git pull does not fail
+          REPO_ROOT="$(git rev-parse --show-toplevel)"
+          git remote add origin "$REPO_ROOT" 2>/dev/null || git remote set-url origin "$REPO_ROOT"
+          git fetch origin 2>/dev/null || true
+          git branch --set-upstream-to=origin/act-harness act-harness 2>/dev/null || true
+      - name: Create GITHUB_EVENT_PATH file
+        run: |
+          echo '{"head_commit":{"message":"test commit"}}' > /tmp/github_event.json
+          echo "GITHUB_EVENT_PATH=/tmp/github_event.json" >> $GITHUB_ENV
+      - id: action
+        uses: .
+        with:
+          Run: "Write-Host 'TurtleScript executed successfully'"
+          NoCommit: "true"
+          NoPush: "true"
+          UserEmail: "test@example.com"
+          UserName: "test-user"
+      - name: Assert action completed without failure
+        run: |
+          echo "Action with Run input completed successfully"
+          echo "PASS"

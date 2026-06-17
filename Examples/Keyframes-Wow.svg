@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" transform-origin="50% 50%" width="100%" height="100%">
+  <style>
+@keyframes bigger-font {
+  0% {
+    font-size: 1rem;
+  }
+  16% {
+    font-size: 2rem;
+  }
+  32% {
+    font-size: 5rem;
+  }
+  48% {
+    font-size: 10rem;
+  }
+  64% {
+    font-size: 15rem;
+  }
+  100% {
+    font-size: 20rem;
+  }
+}
+.bigger-font {
+    animation-name: bigger-font;
+    animation-duration: 1.68s;
+    animation-iteration-count: infinite;
+}
+</style>
+  <path id="wow-wow-wow-wow-wow-path" d="m 0 0" stroke="currentcolor" stroke-width="0.25%" fill="transparent" class="foreground-stroke" transform-origin="50% 50%">
+  </path>
+  <text id="wow-wow-wow-wow-wow-text" dominant-baseline="middle" text-anchor="middle" x="50%" y="50%" fill="currentcolor" class="bigger-font">
+    <title>wow</title>
+wow
+</text>
+</svg>
