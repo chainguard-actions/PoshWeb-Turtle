@@ -1,0 +1,1 @@
+function goto(x,y) { return this.step(x - this.x, y - this.y) }

@@ -1,0 +1,1 @@
+function rotate(angle) { this.heading += Number(angle); return this }
