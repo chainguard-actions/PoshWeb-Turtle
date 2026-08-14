@@ -4,19 +4,28 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_EVENT_NAME: push
-      GITHUB_REF: refs/heads/act-harness
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: true
+
+      - name: Configure git identity
+        run: |
+          git config --global user.email "test@example.com"
+          git config --global user.name "Test User"
+
       - id: action
         uses: .
         with:
-          ActionScript: "*nonexistent*.Turtle.ps1"
+          # Pass a wildcard that won't match any scripts in the action path
+          # (no *.Turtle.ps1 files exist there), so the action runs safely
+          ActionScript: "*.DoesNotExist.Turtle.ps1"
+          SkipScriptFile: "true"
           NoPush: "true"
           NoCommit: "true"
-          SkipScriptFile: "true"
-      - name: Assert action completed
+          GitHubToken: ${{ github.token }}
+
+      - name: Assert action completed without error
         run: |
-          echo "Action completed successfully with ActionScript input"
+          echo "ActionScript input was accepted and action completed"
           echo "PASS"

@@ -4,21 +4,27 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_EVENT_NAME: push
-      GITHUB_REF: refs/heads/act-harness
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: true
+
+      - name: Configure git identity
+        run: |
+          git config --global user.email "test@example.com"
+          git config --global user.name "Test User"
+
       - id: action
         uses: .
         with:
-          Run: |
-            Write-Host "InstallModule test: modules installed successfully"
-          InstallModule: "ThreadJob"
+          # Install a small, well-known module from the PowerShell Gallery
+          InstallModule: "PowerShellGet"
+          SkipScriptFile: "true"
           NoPush: "true"
           NoCommit: "true"
-          SkipScriptFile: "true"
-      - name: Assert action completed
+          GitHubToken: ${{ github.token }}
+
+      - name: Assert action completed with InstallModule
         run: |
-          echo "Action completed successfully with InstallModule input"
+          echo "InstallModule input was accepted and action completed"
           echo "PASS"
