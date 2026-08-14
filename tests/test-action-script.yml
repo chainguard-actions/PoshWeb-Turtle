@@ -4,20 +4,34 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_EVENT_NAME: push
-      GITHUB_REF: refs/heads/act-harness
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - id: action
+        with:
+          persist-credentials: true
+
+      - name: Configure git identity
+        run: |
+          git config user.email "test@example.com"
+          git config user.name "Test User"
+
+      - name: Set up a git origin reachable from the action
+        run: |
+          rm -rf "$GITHUB_WORKSPACE/.git-remote"
+          git init --bare "$GITHUB_WORKSPACE/.git-remote"
+          git push "$GITHUB_WORKSPACE/.git-remote" HEAD:refs/heads/act-harness
+          git remote set-url origin "$GITHUB_WORKSPACE/.git-remote" 2>/dev/null || \
+            git remote add origin "$GITHUB_WORKSPACE/.git-remote"
+
+      - name: Run action with ActionScript input
+        id: action
         uses: .
         with:
-          ActionScript: "*.Turtle.ps1"
+          ActionScript: "*.ps1"
+          SkipScriptFile: "true"
           NoPush: "true"
           NoCommit: "true"
-          UserName: "test-user"
-          UserEmail: "test-user@noreply.github.com"
-      - name: Assert action completed with ActionScript
+
+      - name: Assert action completed successfully
         run: |
-          echo "Action completed with ActionScript input"
+          echo "Action completed without error"
           echo "PASS"

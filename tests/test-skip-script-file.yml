@@ -1,0 +1,71 @@
+name: Test SkipScriptFile flag
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+
+      - name: Install PowerShell
+        run: |
+          if command -v pwsh >/dev/null 2>&1; then
+            echo "pwsh already available: $(pwsh --version)"
+            exit 0
+          fi
+          # Try Microsoft package repository first
+          UBUNTU_VERSION=$(lsb_release -rs 2>/dev/null || echo "22.04")
+          if wget -q "https://packages.microsoft.com/config/ubuntu/${UBUNTU_VERSION}/packages-microsoft-prod.deb" \
+               -O /tmp/packages-microsoft-prod.deb 2>/dev/null; then
+            sudo dpkg -i /tmp/packages-microsoft-prod.deb
+            sudo apt-get update -qq
+            sudo apt-get install -y powershell
+          else
+            # Fallback: direct tarball from GitHub releases
+            PWSH_VERSION="7.4.6"
+            curl -sSL "https://github.com/PowerShell/PowerShell/releases/download/v${PWSH_VERSION}/powershell-${PWSH_VERSION}-linux-x64.tar.gz" \
+              -o /tmp/powershell.tar.gz
+            sudo mkdir -p /opt/microsoft/powershell/7
+            sudo tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7
+            sudo chmod +x /opt/microsoft/powershell/7/pwsh
+            sudo ln -sf /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh
+          fi
+          pwsh --version
+
+      - name: Set up git config and local origin for git pull
+        run: |
+          git config --global user.email "test@example.com"
+          git config --global user.name "Test User"
+          # Create a bare repo under workspace so git pull works inside composite action
+          rm -rf "$GITHUB_WORKSPACE/.git-remote"
+          git init --bare "$GITHUB_WORKSPACE/.git-remote"
+          git push "$GITHUB_WORKSPACE/.git-remote" HEAD:refs/heads/act-harness
+          git remote set-url origin "$GITHUB_WORKSPACE/.git-remote" 2>/dev/null || \
+            git remote add origin "$GITHUB_WORKSPACE/.git-remote"
+          git fetch origin
+          git branch --set-upstream-to=origin/act-harness act-harness 2>/dev/null || true
+
+      - name: Create a Turtle script file that would fail if executed
+        run: |
+          cat > "$GITHUB_WORKSPACE/ShouldNotRun.Turtle.ps1" << 'EOF'
+          throw "This script should not have been executed!"
+          EOF
+
+      - id: action
+        uses: .
+        env:
+          GITHUB_ACTOR_ID: "1"
+        with:
+          SkipScriptFile: "true"
+          NoPush: "true"
+          NoCommit: "true"
+          UserName: "test-user"
+          UserEmail: "test@example.com"
+          GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Assert action completed without running script files
+        run: |
+          echo "Action completed with SkipScriptFile=true without executing Turtle scripts"
+          echo "PASS"
