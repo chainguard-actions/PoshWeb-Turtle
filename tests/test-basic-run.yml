@@ -4,35 +4,54 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_EVENT_NAME: push
-      GITHUB_REF: refs/heads/act-harness
-      GITHUB_ACTOR: test-user
-      GITHUB_ACTOR_ID: ""
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Install PowerShell
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Install PowerShell if not available
         run: |
-          which pwsh || (apt-get update -y && apt-get install -y powershell)
-      - name: Configure git remote so git pull succeeds
+          if ! command -v pwsh &>/dev/null; then
+            echo "Installing PowerShell..."
+            wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+            sudo dpkg -i packages-microsoft-prod.deb
+            sudo apt-get update -q
+            sudo apt-get install -y powershell
+          else
+            echo "pwsh already available: $(pwsh --version)"
+          fi
+
+      - name: Set up git and origin reachable for git pull
         run: |
-          git config --global user.email "test@example.com"
-          git config --global user.name "test-user"
-          git init --bare /tmp/test-remote.git
-          git remote remove origin 2>/dev/null || true
-          git remote add origin /tmp/test-remote.git
-          git push --set-upstream origin act-harness
+          git config user.email "test@example.com"
+          git config user.name "Test User"
+          git config pull.rebase false
+          rm -rf "$GITHUB_WORKSPACE/.git-remote"
+          git init --bare "$GITHUB_WORKSPACE/.git-remote"
+          git push "$GITHUB_WORKSPACE/.git-remote" HEAD:refs/heads/act-harness
+          git remote set-url origin "$GITHUB_WORKSPACE/.git-remote" 2>/dev/null || \
+            git remote add origin "$GITHUB_WORKSPACE/.git-remote"
+          git fetch origin
+          git branch --set-upstream-to=origin/act-harness act-harness 2>/dev/null || true
+
       - id: action
         uses: .
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: github-actions[bot]
+          GITHUB_ACTOR_ID: "41898282"
         with:
           Run: |
-            Write-Host "Turtle script ran successfully"
-            "Hello from Turtle" | Out-Host
+            Write-Host "Hello from Turtle PowerShell!"
+            "Turtle script ran successfully" | Out-Host
           NoPush: "true"
           NoCommit: "true"
           UserEmail: "test@example.com"
-          UserName: "test-user"
+          UserName: "Test User"
+          GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Assert action completed without error
         run: |
-          echo "Action completed successfully"
+          echo "Action step completed successfully"
           echo "PASS"

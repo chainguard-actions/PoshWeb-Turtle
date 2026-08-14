@@ -4,36 +4,63 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_EVENT_NAME: push
-      GITHUB_REF: refs/heads/act-harness
-      GITHUB_ACTOR: test-user
-      GITHUB_ACTOR_ID: ""
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Install PowerShell
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+
+      - name: Install PowerShell if not available
         run: |
-          which pwsh || (apt-get update -y && apt-get install -y powershell)
-      - name: Configure git remote so git pull succeeds
+          if ! command -v pwsh &>/dev/null; then
+            echo "Installing PowerShell..."
+            wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb"
+            sudo dpkg -i packages-microsoft-prod.deb
+            sudo apt-get update -q
+            sudo apt-get install -y powershell
+          else
+            echo "pwsh already available: $(pwsh --version)"
+          fi
+
+      - name: Set up git and origin reachable for git pull
         run: |
-          git config --global user.email "test@example.com"
-          git config --global user.name "test-user"
-          git init --bare /tmp/test-remote.git
-          git remote remove origin 2>/dev/null || true
-          git remote add origin /tmp/test-remote.git
-          git push --set-upstream origin act-harness
-      - name: Create a Turtle script file that should be skipped
+          git config user.email "test@example.com"
+          git config user.name "Test User"
+          git config pull.rebase false
+          rm -rf "$GITHUB_WORKSPACE/.git-remote"
+          git init --bare "$GITHUB_WORKSPACE/.git-remote"
+          git push "$GITHUB_WORKSPACE/.git-remote" HEAD:refs/heads/act-harness
+          git remote set-url origin "$GITHUB_WORKSPACE/.git-remote" 2>/dev/null || \
+            git remote add origin "$GITHUB_WORKSPACE/.git-remote"
+          git fetch origin
+          git branch --set-upstream-to=origin/act-harness act-harness 2>/dev/null || true
+
+      - name: Create a Turtle script file that would fail if executed
         run: |
-          echo 'throw "This script should have been skipped!"' > "$GITHUB_WORKSPACE/should-be-skipped.Turtle.ps1"
+          cat > "$GITHUB_WORKSPACE/fail-if-run.Turtle.ps1" << 'EOF'
+          throw "This script should not have been executed!"
+          EOF
+
       - id: action
         uses: .
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: github-actions[bot]
+          GITHUB_ACTOR_ID: "41898282"
         with:
           SkipScriptFile: "true"
           NoPush: "true"
           NoCommit: "true"
           UserEmail: "test@example.com"
-          UserName: "test-user"
-      - name: Assert action completed without running script files
+          UserName: "Test User"
+          GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Assert action completed without error (SkipScriptFile prevented execution)
         run: |
-          echo "Action completed with SkipScriptFile=true"
+          echo "Action completed - SkipScriptFile=true prevented the failing script from running"
           echo "PASS"
+
+      - name: Cleanup test script
+        if: always()
+        run: |
+          rm -f "$GITHUB_WORKSPACE/fail-if-run.Turtle.ps1"

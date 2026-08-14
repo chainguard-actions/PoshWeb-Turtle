@@ -4,28 +4,32 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_REF: refs/heads/act-harness
-      GITHUB_EVENT_NAME: push
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: true
-      - name: Configure git
+          fetch-depth: 0
+      - name: Set up git identity and local origin for git pull
         run: |
-          git config --global user.email "test@example.com"
-          git config --global user.name "Test User"
+          git config user.email "test@example.com"
+          git config user.name "Test User"
+          # Create a bare repo as origin so git pull works during the action
+          rm -rf "$GITHUB_WORKSPACE/.git-remote"
+          git init --bare "$GITHUB_WORKSPACE/.git-remote"
+          git push "$GITHUB_WORKSPACE/.git-remote" HEAD:refs/heads/act-harness
+          git remote set-url origin "$GITHUB_WORKSPACE/.git-remote" 2>/dev/null || \
+            git remote add origin "$GITHUB_WORKSPACE/.git-remote"
       - id: action
         uses: .
         with:
           Run: |
-            Write-Host "Running on target branch"
-          TargetBranch: "turtle-target-branch-test"
-          NoPush: "true"
-          NoCommit: "true"
+            Write-Host "TargetBranch test: running on target branch"
+          TargetBranch: "test-target-branch-ci"
+          NoPush: 'true'
+          NoCommit: 'true'
           UserEmail: "test@example.com"
           UserName: "TestUser"
-      - name: Assert action completed without error
+      - name: Assert action completed successfully
         run: |
-          echo "Action step completed"
+          echo "Action completed with TargetBranch input"
           echo "PASS"
