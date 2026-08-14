@@ -1,4 +1,4 @@
-name: Test TargetBranch input
+name: Test CommitMessage input
 on:
   workflow_dispatch:
 jobs:
@@ -8,7 +8,6 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: true
-          fetch-depth: 0
       - name: Configure git
         run: |
           git config user.email "test@example.com"
@@ -17,8 +16,8 @@ jobs:
         uses: .
         with:
           Run: |
-            Write-Host "TargetBranch test: running inline script"
-          TargetBranch: "test/turtle-target-branch"
+            Write-Host "CommitMessage test: running inline script"
+          CommitMessage: "chore: automated test commit"
           NoPush: "true"
           NoCommit: "true"
           GitHubToken: ${{ secrets.GITHUB_TOKEN }}

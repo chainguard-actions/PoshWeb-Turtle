@@ -4,46 +4,24 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      GITHUB_EVENT_NAME: push
-      GITHUB_REF: refs/heads/main
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Install PowerShell
+        with:
+          persist-credentials: true
+      - name: Configure git
         run: |
-          which pwsh || (
-            apt-get update -y &&
-            apt-get install -y wget apt-transport-https software-properties-common &&
-            wget -q "https://packages.microsoft.com/config/ubuntu/$(lsb_release -rs)/packages-microsoft-prod.deb" &&
-            dpkg -i packages-microsoft-prod.deb &&
-            apt-get update -y &&
-            apt-get install -y powershell
-          )
-          pwsh --version
-      - name: Create a fake GITHUB_EVENT_PATH file
-        run: |
-          echo '{"head_commit":{"message":"test commit"}}' > /tmp/github_event.json
-          echo "GITHUB_EVENT_PATH=/tmp/github_event.json" >> $GITHUB_ENV
+          git config user.email "test@example.com"
+          git config user.name "Test User"
       - id: action
         uses: .
         with:
           Run: |
-            Write-Host "Running with InstallModule"
-          InstallModule: "PowerShellGet"
+            Write-Host "InstallModule test: modules installed successfully"
+          InstallModule: "ThreadJob"
           NoPush: "true"
           NoCommit: "true"
-          UserName: "test-user"
-          UserEmail: "test-user@noreply.github.com"
-        continue-on-error: true
-      - name: Assert action ran without fatal error
-        env:
-          OUTCOME: ${{ steps.action.outcome }}
+          GitHubToken: ${{ secrets.GITHUB_TOKEN }}
+      - name: Assert action completed successfully
         run: |
-          echo "action outcome: $OUTCOME"
-          # InstallModule input is passed; action may fail due to GitHub API or git pull
-          # in act environment, but should not be cancelled.
-          if [ "$OUTCOME" = "cancelled" ]; then
-            echo "FAIL: action was cancelled unexpectedly"
-            exit 1
-          fi
-          echo "PASS: action completed with InstallModule input (outcome=$OUTCOME)"
+          echo "Action completed without error"
+          echo "PASS"
