@@ -1,0 +1,30 @@
+name: Enhancement
+description: Request an Enhancement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        What do you want to do?  Let's get some info and make it happen
+  - type: textarea
+    id: Description
+    attributes:
+      label: Description
+      description: Describe what you would like to see.
+    validations:
+      required: true  
+  - type: textarea
+    id: Suggestion
+    attributes:
+      label: Suggested Script
+      description: Any script you would suggest to solve the problem
+      render: PowerShell
+    validations:
+      required: false
+  - type: textarea
+    id: Links
+    attributes:
+      label: Links
+      description: Any related links.
+    validations:
+      required: false

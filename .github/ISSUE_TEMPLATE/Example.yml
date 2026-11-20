@@ -1,0 +1,30 @@
+name: Example
+description: Add an Example
+labels: ["documentation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Share your example
+  - type: textarea
+    id: Description
+    attributes:
+      label: Description
+      description: Describe your example
+    validations:
+      required: true  
+  - type: textarea
+    id: sampleCode
+    attributes:
+      label: Sample Code
+      description: Your Sample Code
+      render: PowerShell
+    validations:
+      required: true
+  - type: textarea
+    id: Links
+    attributes:
+      label: Links
+      description: Any related links.
+    validations:
+      required: false
