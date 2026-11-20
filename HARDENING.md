@@ -4,93 +4,144 @@
 
 > This file was generated automatically by the hardening agent.
 
-**Policy SHA:** `d636be7e43ef829af6e853da6b3c7566db9f72fe`
+**Policy SHA:** `374911c4be584df24e6da57af2d990570ef0f859`
 
 **Test Policy SHA:** `843adf9e4b8f85d0c08b27b9d0b09dd094b54702`
 
 **Harden Agent Version:** `2`
 
-Action **PoshWeb--Turtle/v0.2.2** was hardened automatically. 4 finding(s) were identified and resolved across 2 iteration(s).
+Action **PoshWeb--Turtle/v0.2.2** was hardened automatically. 1 finding(s) were identified and resolved across 1 iteration(s).
 
 ## Findings Fixed
 
-### missing-permissions (severity: medium)
+### prior-fix (severity: high)
 
-The workflow file .github/workflows/BuildTurtle.yml has no top-level `permissions:` key and no job-level `permissions:` key on any of its three jobs (TestPowerShellOnLinux, TagReleaseAndPublish, BuildTurtle). This means the workflow runs with the default (potentially broad) GITHUB_TOKEN permissions.
+Carried forward from this version's previous harden, which fixed it; fix it again unless the code no longer has the problem. The previous harden changed action.yml without recording a finding for it, and this analysis reported nothing there. Re-apply its security changes unless the code no longer needs them. The previous patch:
+```diff
+diff --git a/action.yml b/action.yml
+index 533a47f..64152d6 100644
+--- a/action.yml
++++ b/action.yml
+@@ -1,60 +1,73 @@
+-
+ name: TurtlePowerShell
+ description: Turtles in a PowerShell
+-inputs: 
+-  Run: 
++inputs:
++  Run:
+     required: false
+-    description: |
+-      A PowerShell Script that uses Turtle.  
+-      Any files outputted from the script will be added to the repository.
+-      If those files have a .Message attached to them, they will be committed with that message.
+-  SkipScriptFile: 
++    description: "A PowerShell Script that uses Turtle.  \nAny files outputted from the script will be added to the repository.\nIf those files have a .Message attached to them, they will be committed with that message.\n"
++  SkipScriptFile:
+     required: false
+     description: 'If set, will not process any files named *.Turtle.ps1'
+-  InstallModule: 
++  InstallModule:
+     required: false
+     description: A list of modules to be installed from the PowerShell gallery before scripts run.
+-  CommitMessage: 
++  CommitMessage:
+     required: false
+     description: If provided, will commit any remaining changes made to the workspace with this commit message.
+-  TargetBranch: 
++  TargetBranch:
+     required: false
+     description: |
+       If provided, will checkout a new branch before making the changes.
+       If not provided, will use the current branch.
+-  ActionScript: 
++  ActionScript:
+     required: false
+     description: The name of one or more scripts to run, from this action's path.
+-  GitHubToken: 
++  GitHubToken:
+     required: false
+     default: '{{ secrets.GITHUB_TOKEN }}'
+     description: The github token to use for requests.
+-  UserEmail: 
++  UserEmail:
+     required: false
+     description: The user email associated with a git commit.  If this is not provided, it will be set to the username@noreply.github.com.
+-  UserName: 
++  UserName:
+     required: false
+     description: The user name associated with a git commit.
+-  NoPush: 
++  NoPush:
+     required: false
+     description: |
+       If set, will not push any changes made to the repository.
+       (they will still be committed unless `-NoCommit` is passed)
+-  NoCommit: 
++  NoCommit:
+     required: false
+     description: |
+       If set, will not commit any changes made to the repository.
+       (this also implies `-NoPush`)
+-branding: 
++branding:
+   icon: chevron-right
+   color: blue
+-runs: 
++runs:
+   using: composite
+-  steps: 
++  steps:
+     - name: TurtleAction
+       id: TurtleAction
+       shell: pwsh
+-      env: 
++      env:
+         UserName: ${{inputs.UserName}}
+         CommitMessage: ${{inputs.CommitMessage}}
+         Run: ${{inputs.Run}}
+@@ -66,380 +79,4 @@ runs:
+         NoCommit: ${{inputs.NoCommit}}
+         NoPush: ${{inputs.NoPush}}
+         InstallModule: ${{inputs.InstallModule}}
+-      run: |
+-        $Parameters = @{}
+-        $Parameters.Run = ${env:Run}
+-        $Parameters.SkipScriptFile = ${env:SkipScriptFile}
+-        $Parameters.SkipScriptFile = $parameters.SkipScriptFile -match 'true';
+-        $Parameters.InstallModule = ${env:InstallModule}
+-        $Parameters.InstallModule = $parameters.InstallModule -split ';' -replace '^[''"]' -replace  '[''"]$'
+-        $Parameters.CommitMessage = ${env:CommitMessage}
+-        $Parameters.TargetBranch = ${env:TargetBranch}
+-        $Parameters.ActionScript = ${env:ActionScript}
+-        $Parameters.ActionScript = $parameters.ActionScript -split ';' -replace '^[''"]' -replace  '[''"]$'
+-        $Parameters.GitHubToken = ${env:GitHubToken}
+-        $Parameters.UserEmail = ${env:UserEmail}
+-        $Parameters.UserName = ${env:UserName}
+-        $Parameters.NoPush = ${env:NoPush}
+-        $Parameters.NoPush = $parameters.NoPush -match 'true';
+-        $Parameters.NoCommit = ${env:NoCommit}
+-        $Parameters.NoCommit = $parameters.NoCommit -match 'true';
+-        foreach ($k in @($parameters.Keys)) {
+-            if ([String]::IsNullOrEmpty($parameters[$k])) {
+-                $parameters.Remove($k)
+-            }
+-        }
+-        Write-Host "::debug:: TurtleAction $(@(foreach ($p in $P
+... (truncated)
+```
 
 Locations:
 
-- `.github/workflows/BuildTurtle.yml:1`
-
-### script-injection (severity: high)
-
-Sub-rule (a): GitHub Actions expressions are interpolated directly inside a `run:` shell script block. In the ReleaseModule step, `${{github.repository}}` is embedded in a PowerShell string used to construct a URL (`'https://api.github.com/repos/${{github.repository}}/releases'`), and `${{github.owner}}` and `${{github.repository}}` are embedded in a hashtable body passed to Invoke-RestMethod. These expressions are substituted by the Actions runner before the shell sees the script, allowing injection of shell metacharacters.
-
-Locations:
-
-- `.github/workflows/BuildTurtle.yml:174`
-
-### unpinned-uses (severity: high)
-
-Multiple `uses:` references in BuildTurtle.yml are pinned to mutable tags or branch names instead of immutable 40-character commit SHAs, making the workflow vulnerable to supply-chain attacks if the referenced action is compromised or its tag is moved:
-- `uses: actions/checkout@v4` (line ~38)
-- `uses: actions/upload-artifact@main` (line ~106)
-- `uses: actions/checkout@v2` (line ~116)
-- `uses: actions/checkout@main` (line ~307)
-- `uses: StartAutomating/EZOut@master` (line ~308)
-
-Locations:
-
-- `.github/workflows/BuildTurtle.yml:38`
-- `.github/workflows/BuildTurtle.yml:106`
-- `.github/workflows/BuildTurtle.yml:116`
-- `.github/workflows/BuildTurtle.yml:307`
-- `.github/workflows/BuildTurtle.yml:308`
-
-### unpinned-uses (severity: high)
-
-Multiple `uses:` references in deploy.yml are pinned to the mutable `@main` branch instead of immutable 40-character commit SHAs, making the workflow vulnerable to supply-chain attacks:
-- `uses: actions/checkout@main` (line 36)
-- `uses: actions/configure-pages@main` (line 41)
-- `uses: actions/upload-pages-artifact@main` (line 46)
-- `uses: actions/deploy-pages@main` (line 52)
-
-Locations:
-
-- `.github/workflows/deploy.yml:36`
-- `.github/workflows/deploy.yml:41`
-- `.github/workflows/deploy.yml:46`
-- `.github/workflows/deploy.yml:52`
+- `action.yml`
 
 ## Iteration Notes
 
 ### Iteration 1
 
-**Fixes applied:** missing-permissions, script-injection, unpinned-uses
+**Fixes applied:** prior-fix
 
 **Notes:**
 
-Fixed all four findings in BuildTurtle.yml and deploy.yml:
-
-1. missing-permissions: Added top-level `permissions: contents: read` to BuildTurtle.yml. Added job-level `permissions: contents: write` to the TagReleaseAndPublish job (needed for git tag push and GitHub release creation). deploy.yml already had a permissions block.
-
-2. script-injection: In the ReleaseModule step of BuildTurtle.yml, moved `${{github.repository}}` and `${{github.owner}}` out of the run: shell script into an env: block (as GITHUB_REPOSITORY_NAME and GITHUB_OWNER_NAME). Updated the PowerShell script to use `$env:GITHUB_REPOSITORY_NAME` and `$env:GITHUB_OWNER_NAME` instead.
-
-3. unpinned-uses (BuildTurtle.yml): Pinned 5 actions to full commit SHAs — actions/checkout@v4, actions/upload-artifact@main, actions/checkout@v2, actions/checkout@main, StartAutomating/EZOut@master.
-
-4. unpinned-uses (deploy.yml): Pinned 4 actions to full commit SHAs — actions/checkout@main, actions/configure-pages@main, actions/upload-pages-artifact@main, actions/deploy-pages@main.
-
-All SHAs were resolved via lookup_action_sha.
-
-### Iteration 2
-
-**Fixes applied:** script-injection
-
-**Notes:**
-
-Fixed all four script-injection occurrences in hardened/action/.github/workflows/BuildTurtle.yml:
-
-1. ReleaseModule step (lines 278, 318, 358): Added `GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}` to the step's `env:` block. Replaced the three direct interpolations `'Bearer ${{ secrets.GITHUB_TOKEN }}'` (in PowerShell single-quoted strings used as HTTP Authorization headers for the list-releases, create-release, and upload-asset API calls) with `"Bearer $($env:GH_TOKEN)"` — PowerShell double-quoted strings that read from the environment variable at runtime.
-
-2. PublishPowerShellGallery step (line 433): Added `GALLERY_KEY: ${{ secrets.GALLERYKEY }}` to the step's `env:` block. Replaced `$gk = '${{secrets.GALLERYKEY}}'` with `$gk = $env:GALLERY_KEY` so the secret is read from the environment at runtime rather than being embedded in the script source.
+I couldn't fully redo the previous fix because the old patch was cut off in the finding. It showed the inline pwsh script being removed, but not what replaced it. So I hardened the one clear code-injection risk in action.yml instead, and no tests were run. The script was calling $ExecutionContext.SessionState.InvokeCommand.ExpandString on the TargetBranch and CommitMessage inputs, which runs any $(...) subexpression in the value as code. Both calls now go through a new SafeExpandString helper. It still expands plain variable references like $env:GITHUB_SHA, but if a value contains '$(' it leaves the text unexpanded and logs a warning. One behaviour change: a branch name or commit message that relied on $(...), such as a date stamp, now stays as literal text. Inputs already reach the script through env: and are read as ${env:...}, so there are no ${{ }} expressions inside the run: script. I left the Run input running through Invoke-Expression, since running the user's script is what the action is for.
 
